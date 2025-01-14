@@ -105,6 +105,15 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    ext {
+        REACT_NATIVE_NODE_MODULES_DIR = "../../node_modules"
+    }
+
+    project.ext.vectoricons = [
+    iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf', 'MaterialCommunityIcons.ttf', 'Ionicons.ttf'] // Name of the font files you want to copy
+]
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 }
 
 dependencies {
@@ -117,3 +126,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+
