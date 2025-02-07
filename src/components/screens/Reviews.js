@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, FlatList, TextInput, Button, TouchableOpacity, Image} from 'react-native';
+import {StyleSheet, Text, View, FlatList, TextInput, TouchableOpacity, Image, Alert} from 'react-native';
 import axios from '../elements/axiosConfig';
 import {AirbnbRating} from 'react-native-ratings';
 import {useNavigation} from '@react-navigation/native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StarRating = ({rating}) => {
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
@@ -15,6 +15,7 @@ function Reviews({route}) {
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({content: '', rating: 1});
     const [isFormVisible, setIsFormVisible] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -30,7 +31,13 @@ function Reviews({route}) {
             }
         };
 
+        const checkAuth = async () => {
+            const token = await AsyncStorage.getItem('access');
+            setIsAuthenticated(!!token);
+        };
+
         fetchReviews();
+        checkAuth();
     }, [serviceId]);
 
     const handleAddReview = async () => {
@@ -47,10 +54,10 @@ function Reviews({route}) {
         } catch (error) {
             if (error.response) {
                 console.error('Ошибка от сервера:', error.response.data);
-                alert('Ошибка при добавлении отзыва: ' + error.response.data.detail);
+                Alert.alert('Ошибка при добавлении отзыва: ' + error.response.data.detail);
             } else {
                 console.error('Ошибка при отправке запроса:', error.message);
-                alert('Ошибка при отправке запроса');
+                Alert.alert('Ошибка при отправке запроса');
             }
         }
     };
@@ -73,8 +80,7 @@ function Reviews({route}) {
                     renderItem={({item}) => (
                         <View style={styles.reviewCard}>
                             <Text style={styles.reviewAuthor}>
-                                {item.user.first_name} {item.user.last_name} - <StarRating
-                                rating={item.rating}/>
+                                {item.user.first_name} {item.user.last_name} - <StarRating rating={item.rating}/>
                             </Text>
                             <Text style={styles.reviewText}>{item.content}</Text>
                         </View>
@@ -84,33 +90,46 @@ function Reviews({route}) {
                 <Text style={styles.noReviews}>Нет отзывов для этой услуги</Text>
             )}
 
-            <Button style={styles.buttonSumbit} title="Добавить отзыв" onPress={() => setIsFormVisible(!isFormVisible)}/>
-
-            {isFormVisible && (
-                <View style={styles.formContainer}>
-
-
-                    <View style={styles.rating}>
-                    <Text style={styles.ratingLabel}>Оцените услугу:</Text>
-                        <AirbnbRating
-                        count={5}
-                        defaultRating={1}
-                        reviews={[]}
-                        size={30}
-                        onFinishRating={(rating) => setNewReview({...newReview, rating})}
-                    /></View>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ваше впечатление"
-                        value={newReview.content}
-                        onChangeText={(text) => setNewReview({...newReview, content: text})}
-                        placeholderTextColor="#ccc"
-
-                    />
-                    <TouchableOpacity onPress={handleAddReview}>
-                        <Text style={styles.buttonSumbit}>Отправить</Text>
+            {isAuthenticated && (
+                <>
+                    <TouchableOpacity
+                        style={styles.buttonSumbit}
+                        onPress={() => setIsFormVisible(!isFormVisible)}
+                    >
+                        <Text style={styles.buttonText}>
+                            {isFormVisible ? 'Скрыть' : 'Добавить отзыв'}
+                        </Text>
                     </TouchableOpacity>
-                </View>
+
+                    {isFormVisible && (
+                        <View style={styles.formContainer}>
+                            <View style={styles.rating}>
+                                <Text style={styles.ratingLabel}>Оцените услугу:</Text>
+                                <AirbnbRating
+                                    count={5}
+                                    defaultRating={1}
+                                    reviews={[]}
+                                    size={30}
+                                    onFinishRating={(rating) =>
+                                        setNewReview({...newReview, rating})
+                                    }
+                                />
+                            </View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Ваше впечатление (не обязательно)"
+                                value={newReview.content}
+                                onChangeText={(text) =>
+                                    setNewReview({...newReview, content: text})
+                                }
+                                placeholderTextColor="#ccc"
+                            />
+                            <TouchableOpacity onPress={handleAddReview}>
+                                <Text style={styles.buttonSumbit}>Отправить</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </>
             )}
         </View>
     );
@@ -126,7 +145,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%'
+        width: '100%',
     },
     header: {
         fontSize: 24,
@@ -135,7 +154,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginRight: 20,
         flex: 1,
-
     },
     arrow_back: {
         width: 30,
@@ -188,7 +206,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     rating: {
-        marginBottom: 30
+        marginBottom: 30,
     },
     buttonSumbit: {
         backgroundColor: '#007bff',
@@ -197,8 +215,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         color: '#fff',
         textAlign: 'center',
-        fontSize: 15
-    }
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 18,
+    },
 });
 
 export default Reviews;

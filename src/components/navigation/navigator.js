@@ -11,14 +11,14 @@ import Car from '../screens/Car';
 import EditCar from '../screens/EditCar';
 import Reviews from '../screens/Reviews';
 import ResetPassword from '../screens/ResetPassword';
-import ResetPasswordConfirm from '../screens/ResetPasswordConfirm';
+import PasswordResetConfirm from '../screens/PasswordResetConfirm';
 
 
 const Stack = createStackNavigator();
 
-function Navigator(props) {
+function Navigator() {
     return(
-        <Stack.Navigator initialRouteName="Home">
+        <Stack.Navigator initialRouteName="Home" >
             <Stack.Screen name="Home" component={HomeTabs} options={{ headerShown: false }} />
             <Stack.Screen name="RecordOnService" component={RecordOnService} options={{ headerShown: false }}/>
             <Stack.Screen name="Registration" component={Registration} options={{ headerShown: false }}/>
@@ -30,7 +30,7 @@ function Navigator(props) {
             <Stack.Screen name="EditCar" component={EditCar} options={{ headerShown: false }} />
             <Stack.Screen name="Reviews" component={Reviews} options={{ headerShown: false }} />
             <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }} />
-            <Stack.Screen name="ResetPasswordConfirm" component={ResetPasswordConfirm} />
+            <Stack.Screen name="PasswordResetConfirm" component={PasswordResetConfirm} options={{ headerShown: false }} />
         </Stack.Navigator>
     )
 }

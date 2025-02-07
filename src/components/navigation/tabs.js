@@ -40,7 +40,7 @@ export const HomeTabs = () => {
       <Tab.Screen name="HomeTabs" component={Home} />
       <Tab.Screen name="Car" component={Car} />
       <Tab.Screen name="Services" component={Services} />
-      <Tab.Screen name="Dialogs" component={Dialogs} />
+      {/*<Tab.Screen name="Dialogs" component={Dialogs} />*/}
         <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );

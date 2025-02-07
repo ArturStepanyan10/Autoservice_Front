@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261672701268",
+    "project_id": "autoservice-automaster",
+    "storage_bucket": "autoservice-automaster.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261672701268:android:ef60517a3e16753f0c0cc1",
+        "android_client_info": {
+          "package_name": "com.autoservice_front"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3plFGSRHj5WawlzONN7Ht9gPBkt9xbVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

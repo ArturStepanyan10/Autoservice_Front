@@ -1,20 +1,31 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Alert, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import * as Yup from 'yup';
+import {Formik} from 'formik';
 import axios from '../elements/axiosConfig';
-import { useNavigation } from '@react-navigation/native';
-import { launchImageLibrary } from 'react-native-image-picker';
-
 
 function AddCar() {
-    const [brand, setBrand] = useState('');
-    const [model, setModel] = useState('');
-    const [year, setYear] = useState('');
-    const [color, setColor] = useState('');
-    const [vin, setVin] = useState('');
-    const [licensePlate, setLicensePlate] = useState('');
     const [photo, setPhoto] = useState(null);
     const navigation = useNavigation();
 
+    const validationSchema = Yup.object().shape({
+        brand: Yup.string().required('Марка автомобиля обязательна'),
+        model: Yup.string().required('Модель автомобиля обязательна'),
+        vin: Yup.string()
+            .required('VIN обязателен')
+            .matches(
+                /^[A-HJ-NPR-Z0-9]{17}$/,
+                'VIN должен состоять из 17 символов (без I, O, Q)',
+            ),
+        licensePlate: Yup.string()
+            .required('Госномер обязателен')
+            .matches(
+                /^[АВЕКМНОРСТУХ]{1}\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/,
+                'Госномер должен быть в формате С001КЕ33',
+            ),
+    });
 
     const handleImagePick = async () => {
         launchImageLibrary(
@@ -31,23 +42,18 @@ function AddCar() {
                     const selectedPhoto = response.assets[0];
                     setPhoto(selectedPhoto);
                 }
-            }
+            },
         );
     };
 
-    const handleSubmit = async () => {
-        if (!brand || !model || !vin || !licensePlate) {
-            Alert.alert('Ошибка', 'Заполните все поля!');
-            return;
-        }
-
+    const handleSubmit = async (values) => {
         const carData = new FormData();
-        carData.append('brand', brand);
-        carData.append('model', model);
-        carData.append('year', parseInt(year, 10));
-        carData.append('color', color);
-        carData.append('vin', vin);
-        carData.append('license_plate', licensePlate);
+        carData.append('brand', values.brand);
+        carData.append('model', values.model);
+        carData.append('year', parseInt(values.year, 10));
+        carData.append('color', values.color);
+        carData.append('vin', values.vin);
+        carData.append('license_plate', values.licensePlate);
 
         if (photo) {
             carData.append('photo', {
@@ -56,22 +62,17 @@ function AddCar() {
                 name: photo.fileName || 'photo.jpg',
             });
         }
+
         try {
             const response = await axios.post('http://192.168.8.116:8000/api/carslist/', carData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+
             if (response.status === 201) {
                 Alert.alert('Успех', 'Машина успешно добавлена!');
                 navigation.popToTop();
-
-                setBrand('');
-                setModel('');
-                setYear('');
-                setColor('');
-                setVin('');
-                setLicensePlate('');
             }
         } catch (error) {
             console.error('Ошибка при добавлении машины:', error);
@@ -82,61 +83,102 @@ function AddCar() {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Добавление автомобиля</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Марка (например, BMW)"
-                value={brand}
-                onChangeText={setBrand}
-                placeholderTextColor="#ccc"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Модель (например, M5 F90)"
-                value={model}
-                placeholderTextColor="#ccc"
-                onChangeText={setModel}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Год выпуска (например, 2020)"
-                value={year}
-                onChangeText={setYear}
-                placeholderTextColor="#ccc"
-                keyboardType="numeric"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Цвет (например, черный)"
-                value={color}
-                onChangeText={setColor}
-                placeholderTextColor="#ccc"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="VIN (например, XTAFTA211440A1234567)"
-                value={vin}
-                placeholderTextColor="#ccc"
-                onChangeText={setVin}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Гос. номер (например, А005АА33)"
-                value={licensePlate}
-                placeholderTextColor="#ccc"
-                onChangeText={setLicensePlate}
-            />
-            <TouchableOpacity style={styles.imagePickerButton} onPress={handleImagePick}>
-                <Text style={styles.imagePickerText}>Выбрать фото</Text>
-            </TouchableOpacity>
-            {photo && (
-                <Image
-                    source={{ uri: photo.uri }}
-                    style={styles.imagePreview}
-                />
-            )}
-            <TouchableOpacity onPress={handleSubmit}>
-                <Text style={styles.addCar}>Добавить автомобиль</Text>
-            </TouchableOpacity>
+
+            <Formik
+                initialValues={{
+                    brand: '',
+                    model: '',
+                    year: '',
+                    color: '',
+                    vin: '',
+                    licensePlate: '',
+                }}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+            >
+                {({values, handleChange, handleBlur, handleSubmit, touched, errors}) => (
+                    <>
+                        <TextInput
+                            style={[styles.input, touched.brand && errors.brand ? styles.errorInput : null]}
+                            placeholder="Марка (например, BMW) *"
+                            value={values.brand}
+                            onChangeText={handleChange('brand')}
+                            onBlur={handleBlur('brand')}
+                            placeholderTextColor="#ccc"
+                        />
+                        {touched.brand && errors.brand && <Text style={styles.errorText}>{errors.brand}</Text>}
+
+                        <TextInput
+                            style={[styles.input, touched.model && errors.model ? styles.errorInput : null]}
+                            placeholder="Модель (например, M5 F90) *"
+                            value={values.model}
+                            onChangeText={handleChange('model')}
+                            onBlur={handleBlur('model')}
+                            placeholderTextColor="#ccc"
+                        />
+                        {touched.model && errors.model && <Text style={styles.errorText}>{errors.model}</Text>}
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Год выпуска (например, 2020) (не обязательно)"
+                            value={values.year}
+                            onChangeText={handleChange('year')}
+                            onBlur={handleBlur('year')}
+                            placeholderTextColor="#ccc"
+                            keyboardType="numeric"
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Цвет (например, черный) (не обязательно)"
+                            value={values.color}
+                            onChangeText={handleChange('color')}
+                            onBlur={handleBlur('color')}
+                            placeholderTextColor="#ccc"
+                        />
+
+                        <TextInput
+                            style={[styles.input, touched.vin && errors.vin ? styles.errorInput : null]}
+                            placeholder="VIN (например, XTAFTA211440A1234567) *"
+                            value={values.vin}
+                            onChangeText={handleChange('vin')}
+                            onBlur={handleBlur('vin')}
+                            placeholderTextColor="#ccc"
+                        />
+                        {touched.vin && errors.vin && <Text style={styles.errorText}>{errors.vin}</Text>}
+
+                        <TextInput
+                            style={[styles.input, touched.licensePlate && errors.licensePlate ? styles.errorInput : null]}
+                            placeholder="Гос. номер (например, А005АА33) *"
+                            value={values.licensePlate}
+                            onChangeText={handleChange('licensePlate')}
+                            onBlur={handleBlur('licensePlate')}
+                            placeholderTextColor="#ccc"
+                        />
+                        {touched.licensePlate && errors.licensePlate &&
+                            <Text style={styles.errorText}>{errors.licensePlate}</Text>}
+
+                        <TouchableOpacity style={styles.imagePickerButton} onPress={handleImagePick}>
+                            <Text style={styles.imagePickerText}>Выбрать фото (не обязательно)</Text>
+                        </TouchableOpacity>
+
+                        {photo && (
+                            <Image
+                                source={{uri: photo.uri}}
+                                style={styles.imagePreview}
+                            />
+                        )}
+
+                        <TouchableOpacity onPress={handleSubmit}>
+                            <Text style={styles.addCar}>Добавить автомобиль</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Text style={styles.back}>Назад</Text>
+                        </TouchableOpacity>
+                    </>
+                )}
+            </Formik>
         </View>
     );
 }
@@ -161,6 +203,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ddd',
     },
+    errorInput: {
+        borderColor: 'red',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginBottom: 10,
+    },
     addCar: {
         width: '90%',
         textAlign: 'center',
@@ -169,9 +219,9 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         alignSelf: 'center',
-        color: "#fff",
+        color: '#fff',
         marginTop: 20,
-        fontSize: 18
+        fontSize: 18,
     },
     imagePickerButton: {
         backgroundColor: '#007BFF',
@@ -188,6 +238,13 @@ const styles = StyleSheet.create({
         height: 200,
         borderRadius: 8,
         marginBottom: 10,
+    },
+    back: {
+        color: '#007bff',
+        fontSize: 17,
+        textDecorationLine: 'underline',
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 

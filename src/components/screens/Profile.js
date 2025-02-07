@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TouchableOpacity, StyleSheet, View, Image, Alert, TextInput } from 'react-native';
+import {Text, TouchableOpacity, StyleSheet, View, Image, Alert, TextInput, Linking} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserInfo from '../elements/UserInfo';
 import axios from '../elements/axiosConfig.js';
-
 
 function Profile() {
     const [isAuthenticated, setAuthenticated] = useState(false);
@@ -13,8 +12,38 @@ function Profile() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
+    const validateEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
+
+    const validateForm = () => {
+        let valid = true;
+        if (!email || !validateEmail(email)) {
+            setEmailError('Введите корректный E-mail');
+            valid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!password) {
+            setPasswordError('Пароль не может быть пустым');
+            valid = false;
+        } else {
+            setPasswordError('');
+        }
+
+        return valid;
+    };
 
     const handleLogin = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             const response = await axios.post('http://192.168.8.116:8000/api/login/', {
                 email: email,
@@ -28,7 +57,7 @@ function Profile() {
                 await AsyncStorage.setItem('refresh', refresh);
                 setAuthenticated(true);
             }
-
+            navigation.navigate("Home")
             Alert.alert('Успешный вход!');
         } catch (error) {
             console.error('Login error:', error);
@@ -59,30 +88,37 @@ function Profile() {
     }
 
     const handleLogout = async () => {
-    Alert.alert(
-        "Подтверждение",
-        "Вы уверены, что хотите выйти из аккаунта?",
-        [
-            {
-                text: "Отмена",
-                style: "cancel",
-            },
-            {
-                text: "Да",
-                onPress: async () => {
-                    await AsyncStorage.removeItem('access');
-                    await AsyncStorage.removeItem('refresh');
-                    setAuthenticated(false);
-                    setUser(null);
-                    setEmail('');
-                    setPassword('');
-                    Alert.alert('Выход выполнен');
+        Alert.alert(
+            "Подтверждение",
+            "Вы уверены, что хотите выйти из аккаунта?",
+            [
+                {
+                    text: "Отмена",
+                    style: "cancel",
                 },
-            },
-        ],
-        { cancelable: false }
-    );
-};
+                {
+                    text: "Да",
+                    onPress: async () => {
+                        await AsyncStorage.removeItem('access');
+                        await AsyncStorage.removeItem('refresh');
+                        setAuthenticated(false);
+                        setUser(null);
+                        setEmail('');
+                        setPassword('');
+                        Alert.alert('Выход выполнен');
+                    },
+                },
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const openMarkdownInstructions = () => {
+        const markdownUrl = 'https://arturstepanyan10.github.io/Documentation_Autoservice/';
+        Linking.openURL(markdownUrl).catch((err) =>
+            Alert.alert('Ошибка', 'Не удалось открыть инструкцию. Попробуйте позже.')
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -97,13 +133,15 @@ function Profile() {
                             <View style={styles.circle}>
                                 <Text style={styles.initials}>{user.first_name[0] || ''}{user.last_name[0] || ''}</Text>
                             </View>
-                            <Text style={styles.info}>{user.first_name} {user.last_name}</Text>
-                            <TouchableOpacity onPress={navigateInfoUser}>
-                                <Image
-                                    source={require('../assets/images/settings.png')}
-                                    style={styles.iconSettings}
-                                />
-                            </TouchableOpacity>
+                            <View style={styles.userDetails}>
+                                <Text style={styles.info}>{user.first_name} {user.last_name}</Text>
+                                <TouchableOpacity onPress={navigateInfoUser} style={styles.settingsIconContainer}>
+                                    <Image
+                                        source={require('../assets/images/settings.png')}
+                                        style={styles.iconSettings}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     ) : (
                         <Text>Загрузка данных пользователя...</Text>
@@ -114,7 +152,11 @@ function Profile() {
                             <Text style={styles.blockAppointment}>История записей на сервис</Text>
                         </TouchableOpacity>
                     </View>
-
+                    <TouchableOpacity onPress={openMarkdownInstructions}>
+                        <View style={styles.aboutAppBlock}>
+                            <Text style={styles.aboutAppText}>О приложении</Text>
+                        </View>
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={handleLogout}>
                         <View style={styles.logoutBlock}>
                             <Text style={styles.logout}>Выйти из аккаунта</Text>
@@ -131,6 +173,8 @@ function Profile() {
                         onChangeText={setEmail}
                         placeholderTextColor="#ccc"
                     />
+                    {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
                     <View style={styles.passwordContainer}>
                         <TextInput
                             style={styles.passwordInput}
@@ -146,6 +190,7 @@ function Profile() {
                             </Text>
                         </TouchableOpacity>
                     </View>
+                    {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
                     <TouchableOpacity onPress={handleLogin}>
                         <View style={styles.authButton}>
@@ -162,9 +207,6 @@ function Profile() {
                         <Text style={styles.Text}>Забыли пароль ?</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Text style={styles.Text}>Назад</Text>
-                    </TouchableOpacity>
                 </View>
             )}
         </View>
@@ -191,10 +233,16 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 10,
     },
+    userDetails: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
     info: {
         fontSize: 25,
         fontWeight: '500',
         marginLeft: 20,
+        flex: 1,
     },
     circle: {
         width: 60,
@@ -209,8 +257,12 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
+    settingsIconContainer: {
+        marginLeft: 10,
+    },
     iconSettings: {
-        marginLeft: 20,
+        width: 55,
+        height: 55,
     },
     appointmentsBlock: {
         backgroundColor: '#fff',
@@ -222,9 +274,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginBottom: 10,
         textAlign: 'center',
+
     },
     logoutBlock: {
-        marginTop: 430,
+        marginTop: 400,
         borderRadius: 8,
         backgroundColor: 'red',
         width: 250,
@@ -290,6 +343,23 @@ const styles = StyleSheet.create({
         textDecorationLine: 'underline',
         textAlign: 'center',
         marginTop: 20,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 14,
+        marginBottom: 10,
+    },
+    aboutAppBlock: {
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 8,
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    aboutAppText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
 });
 

@@ -46,7 +46,7 @@ function RecordOnService() {
                 setAvailableTimes(times);
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error.message);
-                Alert.alert('Ошибка', 'Не удалось загрузить данные. Попробуйте позже.');
+                Alert.alert('Ошибка', 'Убедитесь в правильности данных!');
             }
         };
 
@@ -61,7 +61,7 @@ function RecordOnService() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedService || !date || !selectedTime) {
+        if (!date || !selectedTime || !selectedService) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните все обязательные поля.');
             return;
         }
@@ -121,13 +121,13 @@ function RecordOnService() {
     }, [date]);
 
     const formattedAvailableTimes = availableTimes.map(time => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const [hours, minutes] = time.split(':').map(Number);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     });
 
     const formattedRecordsTime = recordsTime.map(time => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const [hours, minutes] = time.split(':').map(Number);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     });
 
     const filteredTimes = formattedAvailableTimes.filter(time => !formattedRecordsTime.includes(time));
@@ -169,12 +169,12 @@ function RecordOnService() {
                     key: car.id,
                     label: `${car.brand} ${car.model} (${car.license_plate})`,
                 }))}
-                initValue={selectedCar ? `${cars.find(car => car.id === selectedCar).brand} ${cars.find(car => car.id === selectedCar).model} (${cars.find(car => car.id === selectedCar).license_plate})` : 'Выберите автомобиль'}
+                initValue={selectedCar ? `${cars.find(car => car.id === selectedCar).brand} ${cars.find(car => car.id === selectedCar).model} (${cars.find(car => car.id === selectedCar).license_plate})` : 'Выберите автомобиль (не обязательно)'}
                 onChange={(option) => setSelectedCar(option.key)}
                 style={styles.input}
             >
                 <Text style={styles.inputText}>
-                    {selectedCar ? `${cars.find(car => car.id === selectedCar).brand} ${cars.find(car => car.id === selectedCar).model} (${cars.find(car => car.id === selectedCar).license_plate})` : 'Выберите автомобиль'}
+                    {selectedCar ? `${cars.find(car => car.id === selectedCar).brand} ${cars.find(car => car.id === selectedCar).model} (${cars.find(car => car.id === selectedCar).license_plate})` : 'Выберите автомобиль (не обязательно)'}
                 </Text>
             </ModalSelector>
 

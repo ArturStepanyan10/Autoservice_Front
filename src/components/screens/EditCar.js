@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image} from 'react-native';
 import axios from '../elements/axiosConfig';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {useRoute, useNavigation} from '@react-navigation/native';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 function EditCar() {
     const route = useRoute();
     const navigation = useNavigation();
-    const { carId } = route.params;
+    const {carId} = route.params;
 
     const [brand, setBrand] = useState('');
     const [model, setModel] = useState('');
@@ -15,7 +15,9 @@ function EditCar() {
     const [color, setColor] = useState('');
     const [vin, setVin] = useState('');
     const [licensePlate, setLicensePlate] = useState('');
-    const [photo, setPhoto] = useState(null); // Состояние для фото
+    const [photo, setPhoto] = useState(null);
+
+    const validateLicensePlate = (value) => /^[АВЕКМНОРСТУХ]{1}\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/.test(value);
 
     useEffect(() => {
         const fetchCarData = async () => {
@@ -29,7 +31,7 @@ function EditCar() {
                 setColor(car.color);
                 setVin(car.vin);
                 setLicensePlate(car.license_plate);
-                setPhoto(car.photo); // Установить текущее фото
+                setPhoto(car.photo);
             } catch (error) {
                 console.error('Ошибка при загрузке данных автомобиля:', error);
                 Alert.alert('Ошибка', 'Не удалось загрузить данные автомобиля.');
@@ -40,20 +42,28 @@ function EditCar() {
     }, [carId]);
 
     const handleSelectImage = () => {
-        launchImageLibrary({ noData: true }, (response) => {
+        launchImageLibrary({noData: true}, (response) => {
             if (response.didCancel) {
                 console.log('User cancelled image picker');
             } else if (response.errorCode) {
                 console.log('ImagePicker Error: ', response.errorCode);
             } else {
-                setPhoto(response.assets[0].uri); // Установить выбранное фото
+                setPhoto(response.assets[0].uri);
             }
         });
     };
 
     const handleSaveChanges = async () => {
-        if (!brand || !model || !licensePlate || !vin) {
-            Alert.alert('Ошибка', 'Пожалуйста, заполните все обязательные поля.');
+        if (!brand.trim() || !model.trim()) {
+            Alert.alert('Ошибка', 'Поля "Марка" и "Модель" не могут быть пустыми.');
+            return;
+        }
+
+        if (!validateLicensePlate(licensePlate)) {
+            Alert.alert(
+                'Ошибка',
+                'Некорректный формат государственного номера. Пример: С001КЕ33.'
+            );
             return;
         }
 
@@ -78,7 +88,7 @@ function EditCar() {
             const response = await axios.put(
                 `http://192.168.8.116:8000/api/carslist/${carId}/`,
                 updatedCarData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+                {headers: {'Content-Type': 'multipart/form-data'}}
             );
 
             if (response.status === 200) {
@@ -96,7 +106,7 @@ function EditCar() {
             <Text style={styles.header}>Редактирование автомобиля</Text>
 
             {photo ? (
-                <Image source={{ uri: photo }} style={styles.image} />
+                <Image source={{uri: photo}} style={styles.image}/>
             ) : (
                 <Text style={styles.noImage}>Фото не выбрано</Text>
             )}
@@ -107,14 +117,14 @@ function EditCar() {
 
             <TextInput
                 style={styles.input}
-                placeholder="Марка"
+                placeholder="Марка *"
                 value={brand}
                 onChangeText={setBrand}
                 placeholderTextColor="#ccc"
             />
             <TextInput
                 style={styles.input}
-                placeholder="Модель"
+                placeholder="Модель *"
                 value={model}
                 onChangeText={setModel}
                 placeholderTextColor="#ccc"
@@ -143,13 +153,17 @@ function EditCar() {
             />
             <TextInput
                 style={styles.input}
-                placeholder="Гос. номер"
+                placeholder="Гос. номер *"
                 value={licensePlate}
                 onChangeText={setLicensePlate}
                 placeholderTextColor="#ccc"
             />
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
                 <Text style={styles.saveButtonText}>Сохранить изменения</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.back}>Назад</Text>
             </TouchableOpacity>
         </View>
     );
@@ -211,6 +225,13 @@ const styles = StyleSheet.create({
     selectImageButtonText: {
         color: '#fff',
         fontSize: 16,
+    },
+    back: {
+        color: '#007bff',
+        fontSize: 17,
+        textDecorationLine: 'underline',
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 

@@ -1,29 +1,45 @@
-import React, { useContext, useEffect, useState } from 'react';
-import {View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Context } from "../globalContext/globalContext.js";
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CallButton from '../elements/CallButton';
 import { useNavigation } from '@react-navigation/native';
 
-
-function Home(props) {
+function Home() {
     const navigation = useNavigation();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const token = await AsyncStorage.getItem('access');
+                setIsAuthenticated(!!token);
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+            }
+        };
+
+        checkAuth();
+    }, []);
 
     const navigateToRecordService = () => {
-        navigation.navigate('RecordOnService');
+        if (isAuthenticated) {
+            navigation.navigate('RecordOnService');
+        } else {
+            Alert.alert('Требуется авторизация', 'Пожалуйста, войдите в аккаунт, чтобы записаться на сервис.');
+        }
     };
 
     const navigateToAddCar = () => {
-        navigation.navigate('Car')
+        navigation.navigate('Car');
     };
 
     return (
-
         <View style={styles.container}>
             <View style={styles.header}>
-
                 <Image
                     source={require('../assets/images/logo.png')}
-                    style={styles.logo}/>
+                    style={styles.logo}
+                />
                 <View style={styles.headerContainer}>
                     <Text style={styles.nameText}>АВТОМАСТЕР</Text>
                     <Text style={styles.nameOrg}>АВТОСЕРВИС</Text>
@@ -32,40 +48,42 @@ function Home(props) {
             <Text style={styles.stock}>Акция</Text>
             <Image
                 source={require('../assets/images/skidka.png')}
-                style={styles.discount}/>
+                style={styles.discount}
+            />
 
             <View style={styles.callContainer}>
                 <Text style={styles.phoneNumber}>
-                    АВТОМАСТЕР     +7 (900) 589-52-18
+                    АВТОМАСТЕР +7 (900) 589-52-18
                 </Text>
-                <CallButton style={styles.callIcon} phoneNumber="+7 (900) 589-52-18"/>
-
+                <CallButton style={styles.callIcon} phoneNumber="+7 (900) 589-52-18" />
             </View>
 
             <TouchableOpacity onPress={navigateToRecordService}>
-                <Text style={styles.record}>Записаться на сервис</Text>
+                <Text style={[styles.record, !isAuthenticated && styles.disabledRecord]}>
+                    Записаться на сервис
+                </Text>
             </TouchableOpacity>
 
             <Text style={styles.recommendation}>Рекомендация</Text>
             <View style={styles.box}>
-                <Text style={styles.recommendationBlock}>Добавьте автомобиль для удобной записи
-                    и получения рекомендаций</Text>
+                <Text style={styles.recommendationBlock}>
+                    Добавьте автомобиль для удобной записи и получения рекомендаций
+                </Text>
             </View>
             <TouchableOpacity onPress={navigateToAddCar}>
                 <View style={styles.recommendationContainer}>
-                    <Text style={styles.recommendationText}>
-                        Добавить автомобиль
-                    </Text>
-                <Image
-                    source={require('../assets/images/car.png')}
-                    style={styles.carIcon}/>
+                    <Text style={styles.recommendationText}>Добавить автомобиль</Text>
+                    <Image
+                        source={require('../assets/images/car.png')}
+                        style={styles.carIcon}
+                    />
                 </View>
             </TouchableOpacity>
         </View>
     );
 }
 
-const styles= StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F4F6F8',
@@ -87,19 +105,18 @@ const styles= StyleSheet.create({
         borderRadius: 20,
         width: 70,
         height: 70,
-        marginRight: 10
+        marginRight: 10,
     },
     nameText: {
         fontSize: 24,
         fontWeight: 'bold',
         color: 'white',
         textAlign: 'center',
-        //fontFamily: 'Montserrat-VariableFont_wght'
     },
     nameOrg: {
         fontSize: 13,
         textAlign: 'center',
-        color: 'white'
+        color: 'white',
     },
     stock: {
         fontSize: 18,
@@ -111,7 +128,6 @@ const styles= StyleSheet.create({
         resizeMode: 'cover',
         alignSelf: 'center',
         marginTop: 10,
-
     },
     callContainer: {
         flexDirection: 'row',
@@ -138,11 +154,14 @@ const styles= StyleSheet.create({
         fontWeight: 'bold',
         color: 'white',
         marginTop: 20,
-        fontSize: 20
+        fontSize: 20,
+    },
+    disabledRecord: {
+        backgroundColor: '#B0B0B0',
     },
     recommendation: {
         marginTop: 20,
-        fontSize: 18
+        fontSize: 18,
     },
     box: {
         width: '100%',
@@ -150,12 +169,11 @@ const styles= StyleSheet.create({
         borderRadius: 8,
         padding: 10,
         borderWidth: 2,
-        marginTop: 10
+        marginTop: 10,
     },
     recommendationBlock: {
         fontSize: 20,
         color: 'white',
-        //fontFamily: 'Montserrat-VariableFont_wght'
     },
     recommendationContainer: {
         flexDirection: 'row',
@@ -176,25 +194,6 @@ const styles= StyleSheet.create({
         marginLeft: 8,
         resizeMode: 'contain',
     },
-    // statusText: {
-    //     fontSize: 16,
-    //     color: '#007AFF',
-    //     marginBottom: 20,
-    // },
-    // serviceItem: {
-    //     backgroundColor: 'white',
-    //     padding: 15,
-    //     borderRadius: 10,
-    //     marginBottom: 10,
-    //     shadowColor: 'rgba(0,0,0,0.1)',
-    //     shadowOffset: { width: 0, height: 2 },
-    //     shadowOpacity: 0.2,
-    //     shadowRadius: 2,
-    // },
-    // serviceTitle: {
-    //     fontSize: 18,
-    //     color: '#333',
-    // },
 });
 
 export default Home;

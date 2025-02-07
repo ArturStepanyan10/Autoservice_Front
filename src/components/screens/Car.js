@@ -25,7 +25,6 @@ function Car() {
                 },
             });
 
-            console.log('Fetched cars:', response.data);
             setCars(response.data);
             setIsAuthenticated(true);
         } catch (error) {
