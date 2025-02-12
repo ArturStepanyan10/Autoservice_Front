@@ -1,17 +1,17 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import RecordOnService from '../screens/RecordOnService';
+import RecordOnService from '../../screens/RecordOnService';
 import {HomeTabs} from './tabs';
-import Registration from '../screens/Registration';
-import InfoUser from '../screens/InfoUser';
-import Profile from '../screens/Profile';
-import Appointments from '../screens/Appointments';
-import AddCar from '../screens/AddCar';
-import Car from '../screens/Car';
-import EditCar from '../screens/EditCar';
-import Reviews from '../screens/Reviews';
-import ResetPassword from '../screens/ResetPassword';
-import PasswordResetConfirm from '../screens/PasswordResetConfirm';
+import Registration from '../../screens/Registration';
+import InfoUser from '../../screens/InfoUser';
+import Profile from '../../screens/Profile';
+import Appointments from '../../screens/Appointments';
+import AddCar from '../../screens/AddCar';
+import Car from '../../screens/Car';
+import EditCar from '../../screens/EditCar';
+import Reviews from '../../screens/Reviews';
+import ResetPassword from '../../screens/ResetPassword';
+import PasswordResetConfirm from '../../screens/PasswordResetConfirm';
 
 
 const Stack = createStackNavigator();

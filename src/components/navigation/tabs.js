@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from '../screens/home';
-import Car from '../screens/Car';
-import Services from '../screens/Services';
-import Dialogs from '../screens/Dialogs';
-import Profile from '../screens/Profile';
+import Home from '../../screens/home';
+import Car from '../../screens/Car';
+import Services from '../../screens/Services';
+//import Dialogs from '../../screens/Dialogs';
+import Profile from '../../screens/Profile';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 

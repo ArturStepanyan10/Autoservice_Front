@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import axios from '../elements/axiosConfig.js';
+import axios from '../components/elements/axiosConfig.js';
 import { useNavigation } from '@react-navigation/native';
 
 function PasswordResetConfirm() {
@@ -45,7 +45,7 @@ function PasswordResetConfirm() {
                 navigation.goBack();
             }
         } catch (error) {
-            console.error('Ошибка при сбросе пароля:', error.response?.data || error.message);
+            console.log('Ошибка при сбросе пароля:', error.response?.data || error.message);
             Alert.alert('Ошибка', 'Не удалось изменить пароль. Проверьте данные.');
         }
     };

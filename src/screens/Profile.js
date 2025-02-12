@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {Text, TouchableOpacity, StyleSheet, View, Image, Alert, TextInput, Linking} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import UserInfo from '../elements/UserInfo';
-import axios from '../elements/axiosConfig.js';
+import UserInfo from '../components/elements/UserInfo';
+import axios from '../components/elements/axiosConfig.js';
 
 function Profile() {
     const [isAuthenticated, setAuthenticated] = useState(false);
@@ -60,7 +60,7 @@ function Profile() {
             navigation.navigate("Home")
             Alert.alert('Успешный вход!');
         } catch (error) {
-            console.error('Login error:', error);
+            console.log('Login error:', error);
             Alert.alert('Ошибка', 'Неверный логин или пароль');
         }
     };
@@ -137,7 +137,7 @@ function Profile() {
                                 <Text style={styles.info}>{user.first_name} {user.last_name}</Text>
                                 <TouchableOpacity onPress={navigateInfoUser} style={styles.settingsIconContainer}>
                                     <Image
-                                        source={require('../assets/images/settings.png')}
+                                        source={require('../components/assets/images/settings.png')}
                                         style={styles.iconSettings}
                                     />
                                 </TouchableOpacity>

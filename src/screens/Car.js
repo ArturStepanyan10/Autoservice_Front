@@ -99,13 +99,13 @@ function Car() {
         <View style={styles.card}>
             <TouchableOpacity onPress={() => navigateToEditCar(item.id)}>
                 <Image
-                    source={require('../assets/images/edit.png')}
+                    source={require('../components/assets/images/edit.png')}
                     style={styles.edit}
                 />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => confirmDeleteCar(item.id)}>
                 <Image
-                    source={require('../assets/images/delete.png')}
+                    source={require('../components/assets/images/delete.png')}
                     style={styles.delete}
                 />
             </TouchableOpacity>
@@ -129,7 +129,7 @@ function Car() {
             <View style={styles.headerContainer}>
                 <Text style={styles.title}>ВАШИ АВТОМОБИЛИ</Text>
                 <TouchableOpacity onPress={navigateToAddCar} style={styles.addCarContainer}>
-                    <Image source={require('../assets/images/add.png')} style={styles.addCar} />
+                    <Image source={require('../components/assets/images/add.png')} style={styles.addCar} />
                 </TouchableOpacity>
             </View>
             {isAuthenticated ? (

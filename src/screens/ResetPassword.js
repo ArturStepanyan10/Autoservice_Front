@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import axios from '../elements/axiosConfig.js';
+import axios from '../components/elements/axiosConfig.js';
 import { useNavigation } from '@react-navigation/native';
 
 function ResetPassword() {
@@ -19,7 +19,7 @@ function ResetPassword() {
             Alert.alert('Успешно', 'Инструкция по сбросу пароля отправлена на ваш email.');
             navigation.navigate('PasswordResetConfirm');
         } catch (error) {
-            console.error('Ошибка сброса пароля:', error);
+            console.log('Ошибка сброса пароля:', error);
             Alert.alert('Ошибка', 'Не удалось отправить письмо. Проверьте email.');
         }
     };

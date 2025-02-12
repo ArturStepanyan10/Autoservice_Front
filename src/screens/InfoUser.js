@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity } from 'react-native';
-import axios from '../elements/axiosConfig';
+import axios from '../components/elements/axiosConfig';
 
 function InfoUser({ route, navigation }) {
     const { userData } = route.params;
@@ -41,7 +41,7 @@ function InfoUser({ route, navigation }) {
             Alert.alert('Успех', 'Данные пользователя успешно обновлены.');
             navigation.popToTop();
         } catch (error) {
-            console.error('Ошибка при обновлении данных:', error.response || error.message);
+            console.log('Ошибка при обновлении данных:', error.response || error.message);
             Alert.alert('Ошибка', 'Не удалось обновить данные пользователя.');
         }
     };

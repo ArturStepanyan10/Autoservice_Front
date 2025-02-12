@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, View, FlatList, TextInput, TouchableOpacity, Image, Alert} from 'react-native';
-import axios from '../elements/axiosConfig';
+import axios from '../components/elements/axiosConfig';
 import {AirbnbRating} from 'react-native-ratings';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const StarRating = ({rating}) => {
+// Исправленный компонент StarRating
+const StarRating = ({rating = 0}) => {
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
     return <Text style={styles.stars}>{stars}</Text>;
 };
@@ -27,7 +28,7 @@ function Reviews({route}) {
 
                 setReviews(response.data);
             } catch (error) {
-                console.error(error);
+                console.log(error);
             }
         };
 
@@ -53,10 +54,10 @@ function Reviews({route}) {
             setIsFormVisible(false);
         } catch (error) {
             if (error.response) {
-                console.error('Ошибка от сервера:', error.response.data);
+                console.log('Ошибка от сервера:', error.response.data);
                 Alert.alert('Ошибка при добавлении отзыва: ' + error.response.data.detail);
             } else {
-                console.error('Ошибка при отправке запроса:', error.message);
+                console.log('Ошибка при отправке запроса:', error.message);
                 Alert.alert('Ошибка при отправке запроса');
             }
         }
@@ -67,7 +68,7 @@ function Reviews({route}) {
             <View style={styles.headerContainer}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Image
-                        source={require('../assets/images/arrow_back.png')}
+                        source={require('../components/assets/images/arrow_back.png')}
                         style={styles.arrow_back}
                     />
                 </TouchableOpacity>

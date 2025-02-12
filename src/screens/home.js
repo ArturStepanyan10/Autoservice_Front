@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CallButton from '../elements/CallButton';
-import { useNavigation } from '@react-navigation/native';
+import CallButton from '../components/elements/CallButton';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 function Home() {
     const navigation = useNavigation();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const token = await AsyncStorage.getItem('access');
-                setIsAuthenticated(!!token);
-            } catch (error) {
-                console.error('Ошибка проверки авторизации:', error);
-            }
-        };
+    useFocusEffect(
+        React.useCallback(() => {
+            const checkAuth = async () => {
+                try {
+                    const token = await AsyncStorage.getItem('access');
+                    setIsAuthenticated(!!token);
+                } catch (error) {
+                    console.log('Ошибка проверки авторизации:', error);
+                }
+            };
 
-        checkAuth();
-    }, []);
+            checkAuth();
+        }, [])
+    );
 
     const navigateToRecordService = () => {
         if (isAuthenticated) {
@@ -37,7 +39,7 @@ function Home() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Image
-                    source={require('../assets/images/logo.png')}
+                    source={require('../components/assets/images/logo.png')}
                     style={styles.logo}
                 />
                 <View style={styles.headerContainer}>
@@ -47,7 +49,7 @@ function Home() {
             </View>
             <Text style={styles.stock}>Акция</Text>
             <Image
-                source={require('../assets/images/skidka.png')}
+                source={require('../components/assets/images/skidka.png')}
                 style={styles.discount}
             />
 
@@ -74,7 +76,7 @@ function Home() {
                 <View style={styles.recommendationContainer}>
                     <Text style={styles.recommendationText}>Добавить автомобиль</Text>
                     <Image
-                        source={require('../assets/images/car.png')}
+                        source={require('../components/assets/images/car.png')}
                         style={styles.carIcon}
                     />
                 </View>

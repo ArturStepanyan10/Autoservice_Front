@@ -113,7 +113,7 @@ function RecordOnService() {
                 const times = response.data.map(record => record.time);
                 setRecordsTime(times || []);
             } catch (error) {
-                console.error('Ошибка при загрузке занятых временных интервалов:', error);
+                console.log('Ошибка при загрузке занятых временных интервалов:', error);
             }
         };
 

@@ -4,7 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import * as Yup from 'yup';
 import {Formik} from 'formik';
-import axios from '../elements/axiosConfig';
+import axios from '../components/elements/axiosConfig';
 
 function AddCar() {
     const [photo, setPhoto] = useState(null);
@@ -37,7 +37,7 @@ function AddCar() {
                 if (response.didCancel) {
                     console.log('Выбор фото отменен');
                 } else if (response.errorMessage) {
-                    console.error('Ошибка при выборе изображения:', response.errorMessage);
+                    console.log('Ошибка при выборе изображения:', response.errorMessage);
                 } else {
                     const selectedPhoto = response.assets[0];
                     setPhoto(selectedPhoto);
@@ -75,7 +75,7 @@ function AddCar() {
                 navigation.popToTop();
             }
         } catch (error) {
-            console.error('Ошибка при добавлении машины:', error);
+            console.log('Ошибка при добавлении машины:', error);
             Alert.alert('Ошибка', 'Не удалось добавить машину. Проверьте данные и повторите попытку.');
         }
     };

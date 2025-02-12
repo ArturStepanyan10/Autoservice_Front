@@ -1,31 +1,52 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { Context, Provider } from "./src/components/globalContext/globalContext.js";
-import { View } from 'react-native';
-import Navigator from "./src/components/navigation/navigator.js"
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import {Provider} from './src/components/globalContext/globalContext.js';
+import Navigator from './src/components/navigation/navigator.js';
 
+function App() {
+  const [isConnected, setIsConnected] = useState(true);
 
-const linking = {
-  prefixes: ["myautoservice://"],
-  config: {
-    screens: {
-      PasswordReset: "password-reset/:uid/:token",
-    },
-  },
-};
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
 
-function App(props) {
+    return () => unsubscribe();
+  }, []);
 
+  if (!isConnected) {
     return (
-        <Provider>
-            <View style={{ flex: 1 }}>
-                <NavigationContainer linking={linking}>
-                    <Navigator />
-                </NavigationContainer>
-            </View>
+      <View style={styles.noInternetContainer}>
+        <Text style={styles.noInternetText}>Нет подключения к интернету</Text>
+      </View>
+    );
+  }
 
-        </Provider>
-    )
+  return (
+    <Provider>
+      <View style={{flex: 1}}>
+        <NavigationContainer>
+          <Navigator />
+        </NavigationContainer>
+      </View>
+    </Provider>
+  );
 }
+
+const styles = StyleSheet.create({
+  noInternetContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8d7da',
+  },
+  noInternetText: {
+    color: '#721c24',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 
 export default App;

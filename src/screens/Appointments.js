@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet, View, FlatList, TouchableOpacity, Image } from 'react-native';
-import axios from '../elements/axiosConfig';
-import UserInfo from '../elements/UserInfo';
+import axios from '../components/elements/axiosConfig';
+import UserInfo from '../components/elements/UserInfo';
 import { useNavigation } from '@react-navigation/native';
-import GetServices from '../elements/GetServices';
+import GetServices from '../components/elements/GetServices';
 
 function Appointments() {
     const [appointment, setAppointment] = useState([]);
@@ -18,7 +18,7 @@ function Appointments() {
                 const response = await axios.get('http://192.168.8.116:8000/api/appointmentlist/');
                 setAppointment(response.data);
             } catch (error) {
-                console.error('Ошибка при загрузке записей на сервис пользователя:', error);
+                console.log('Ошибка при загрузке записей на сервис пользователя:', error);
             }
         };
         fetchAppointment();
@@ -47,7 +47,7 @@ function Appointments() {
             <View style={styles.headerContainer}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Image
-                        source={require('../assets/images/arrow_back.png')}
+                        source={require('../components/assets/images/arrow_back.png')}
                         style={styles.arrow_back}
                     />
                 </TouchableOpacity>

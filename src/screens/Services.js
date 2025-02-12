@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
-import GetServices from '../elements/GetServices';
+import GetServices from '../components/elements/GetServices';
 import {useNavigation} from '@react-navigation/native';
 
 function Services() {

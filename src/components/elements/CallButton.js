@@ -1,5 +1,5 @@
 import React from "react";
-import {Alert, Linking, Text, TouchableOpacity, View, StyleSheet, Image} from 'react-native';
+import {Alert, Linking, TouchableOpacity, View, StyleSheet, Image} from 'react-native';
 
 
 function CallButton({ phoneNumber = '+7 (900) 589-52-18' }) {

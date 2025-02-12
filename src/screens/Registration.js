@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, TextInput, Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import axios from '../elements/axiosConfig';
+import axios from '../components/elements/axiosConfig';
 import { useNavigation } from '@react-navigation/native';
 
 const validationSchema = Yup.object({
@@ -44,7 +44,7 @@ function Registration() {
                 navigation.navigate('Profile');
             }
         } catch (error) {
-            console.error('Ошибка регистрации:', error);
+            console.log('Ошибка регистрации:', error);
             Alert.alert('Ошибка', 'Не удалось зарегистрировать пользователя.');
         } finally {
             setLoading(false);

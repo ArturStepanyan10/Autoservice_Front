@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import axios from './axiosConfig.js';
 
 function UserInfo({ setUser }) {
@@ -8,7 +8,7 @@ function UserInfo({ setUser }) {
                 const response = await axios.get('http://192.168.8.116:8000/api/info/');
                 setUser(response.data);
             } catch (error) {
-                console.error('Ошибка при загрузке данных пользователя:', error);
+                console.log('Ошибка при загрузке данных пользователя:', error);
             }
         };
 

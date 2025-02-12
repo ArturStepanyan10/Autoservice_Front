@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image} from 'react-native';
-import axios from '../elements/axiosConfig';
+import axios from '../components/elements/axiosConfig';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
 
