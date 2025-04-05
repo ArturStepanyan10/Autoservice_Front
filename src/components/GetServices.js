@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import axios from './axiosConfig';
+import axios from '../config/axiosConfig';
 
 function GetServices({ setServices }) {
     useEffect(() => {

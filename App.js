@@ -1,9 +1,11 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
-import {Provider} from './src/components/globalContext/globalContext.js';
-import Navigator from './src/components/navigation/navigator.js';
+import {Provider} from './src/contexts/globalContext.js';
+import Navigator from './src/navigation/navigator.js';
+import {AuthProvider} from './src/contexts/authContext.js';
 
 function App() {
   const [isConnected, setIsConnected] = useState(true);
@@ -25,13 +27,15 @@ function App() {
   }
 
   return (
-    <Provider>
-      <View style={{flex: 1}}>
-        <NavigationContainer>
-          <Navigator />
-        </NavigationContainer>
-      </View>
-    </Provider>
+    <AuthProvider>
+      <Provider>
+        <View style={{flex: 1}}>
+          <NavigationContainer>
+            <Navigator />
+          </NavigationContainer>
+        </View>
+      </Provider>
+    </AuthProvider>
   );
 }
 
