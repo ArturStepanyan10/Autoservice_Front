@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import axios from '../../config/axiosConfig.js';
 import {useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../config/apiConfig.js';
 
 function PasswordResetConfirm() {
   const [email, setEmail] = useState('');
@@ -42,7 +43,7 @@ function PasswordResetConfirm() {
 
     try {
       const response = await axios.post(
-        'http://192.168.8.116:8000/api/password-reset/confirm/',
+        `${API_URL}/api-base/password-reset/confirm/`,
         {
           email,
           code,

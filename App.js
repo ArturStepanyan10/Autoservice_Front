@@ -5,7 +5,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
 import {Provider} from './src/contexts/globalContext.js';
 import Navigator from './src/navigation/navigator.js';
-import {AuthProvider} from './src/contexts/authContext.js';
 
 function App() {
   const [isConnected, setIsConnected] = useState(true);
@@ -27,15 +26,13 @@ function App() {
   }
 
   return (
-    <AuthProvider>
-      <Provider>
-        <View style={{flex: 1}}>
-          <NavigationContainer>
-            <Navigator />
-          </NavigationContainer>
-        </View>
-      </Provider>
-    </AuthProvider>
+    <Provider>
+      <View style={{flex: 1}}>
+        <NavigationContainer>
+          <Navigator />
+        </NavigationContainer>
+      </View>
+    </Provider>
   );
 }
 

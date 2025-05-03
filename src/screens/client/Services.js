@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
-import GetServices from '../../components/GetServices';
+import GetServices from '../../API/GET/GetServices';
 import {useNavigation} from '@react-navigation/native';
 
 function Services() {
@@ -13,7 +13,6 @@ function Services() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>УСЛУГИ АВТОСЕРВИСА</Text>
       <GetServices setServices={setServices} />
 
       {services.length > 0 ? (
@@ -25,7 +24,9 @@ function Services() {
               <Text style={styles.serviceTitle}>{item.title}</Text>
               <Text style={styles.serviceDescription}>{item.description}</Text>
               {item.price && (
-                <Text style={styles.servicePrice}>Цена: {item.price} руб.</Text>
+                <View style={styles.priceBlock}>
+                  <Text style={styles.servicePrice}>Цена: {item.price} ₽</Text>
+                </View>
               )}
               <View style={styles.reviewCard}>
                 <TouchableOpacity
@@ -83,7 +84,17 @@ const styles = StyleSheet.create({
   servicePrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
+  },
+  priceBlock: {
+    position: 'absolute',
+    bottom: 20,
+    right: 10,
+    fontSize: 17,
+    backgroundColor: '#1DC37E',
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 5,
   },
   noServices: {
     fontSize: 18,
@@ -95,10 +106,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
     bottom: 5,
+    left: 15,
     backgroundColor: '#007bff',
     paddingVertical: 8,
     paddingHorizontal: 15,
-    borderRadius: 20,
+    borderRadius: 8,
   },
   reviewButtonText: {
     color: '#fff',

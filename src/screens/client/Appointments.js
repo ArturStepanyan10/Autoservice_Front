@@ -8,9 +8,10 @@ import {
   Image,
 } from 'react-native';
 import axios from '../../config/axiosConfig';
-import UserInfo from '../../components/UserInfo';
+import UserInfo from '../../API/GET/UserInfo';
 import {useNavigation} from '@react-navigation/native';
-import GetServices from '../../components/GetServices';
+import GetServices from '../../API/GET/GetServices';
+import {API_URL} from '../../config/apiConfig';
 
 function Appointments() {
   const [appointment, setAppointment] = useState([]);
@@ -22,7 +23,7 @@ function Appointments() {
     const fetchAppointment = async () => {
       try {
         const response = await axios.get(
-          'http://192.168.8.116:8000/api/appointmentlist/',
+          `${API_URL}/api-base/appointmentlist/`,
         );
         setAppointment(response.data);
       } catch (error) {
@@ -88,6 +89,9 @@ function Appointments() {
                   <Text style={[styles.status, getStatusColor(item.status)]}>
                     Статус: {item.status}
                   </Text>
+                  <TouchableOpacity style={styles.cancelButton}>
+                    <Text style={styles.cancelText}>Отменить запись</Text>
+                  </TouchableOpacity>
                 </>
               ) : (
                 <Text>Загрузка данных пользователя...</Text>
@@ -143,6 +147,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 50,
     color: '#777',
+  },
+  cancelButton: {
+    backgroundColor: '#E32636',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import axios from '../../config/axiosConfig';
+import {API_URL} from '../../config/apiConfig';
 
 function InfoUser({route, navigation}) {
   const {userData} = route.params;
@@ -38,15 +39,12 @@ function InfoUser({route, navigation}) {
     }
 
     try {
-      const response = await axios.put(
-        'http://192.168.8.116:8000/api/put/user/',
-        {
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          phone_number: phoneNumber,
-        },
-      );
+      const response = await axios.put(`${API_URL}/api-base/put/user/`, {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        phone_number: phoneNumber,
+      });
       console.log('Данные обновлены:', response.data);
       Alert.alert('Успех', 'Данные пользователя успешно обновлены.');
       navigation.popToTop();

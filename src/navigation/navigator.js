@@ -1,10 +1,12 @@
 import React, {useContext} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
+import {GlobalContext} from '../contexts/globalContext';
+
 import RecordOnService from '../screens/client/RecordOnService';
 import {HomeTabs} from './tabs';
 import Registration from '../screens/client/Registration';
 import InfoUser from '../screens/client/InfoUser';
-import Profile from '../screens/client/Profile';
+import Profile from '../screens/Profile';
 import Appointments from '../screens/client/Appointments';
 import AddCar from '../screens/client/AddCar';
 import Car from '../screens/client/Car';
@@ -12,17 +14,59 @@ import EditCar from '../screens/client/EditCar';
 import Reviews from '../screens/client/Reviews';
 import ResetPassword from '../screens/client/ResetPassword';
 import PasswordResetConfirm from '../screens/client/PasswordResetConfirm';
-import {AuthContext} from '../contexts/authContext';
-import Home from '../screens/worker/Home';
+
+import PastRecords from '../screens/worker/PastRecords';
+import FutureRecords from '../screens/worker/FutureRecords';
+import ChatScreen from '../screens/Chat';
 
 const Stack = createStackNavigator();
 
 function Navigator() {
-  const {role} = useContext(AuthContext);
+  const {user} = useContext(GlobalContext);
+  const role = user?.role;
+  console.log('Navigator', role);
 
   return (
-    <Stack.Navigator initialRouteName="Home">
-      {role === 'ROLE_CLIENT' ? (
+    <Stack.Navigator>
+      {role === 'ROLE_WORKER' ? (
+        <>
+          <Stack.Screen
+            name="HomeWorker"
+            component={HomeTabs}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="PastRecords"
+            component={PastRecords}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Прошлые записи',
+            }}
+          />
+          <Stack.Screen
+            name="FutureRecords"
+            component={FutureRecords}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Будущие записи',
+            }}
+          />
+          <Stack.Screen
+            name="Chat"
+            component={ChatScreen}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Будущие записи',
+            }}
+          />
+        </>
+      ) : (
         <>
           <Stack.Screen
             name="Home"
@@ -84,10 +128,16 @@ function Navigator() {
             component={PasswordResetConfirm}
             options={{headerShown: false}}
           />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen
+            name="Chat"
+            component={ChatScreen}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Диалог',
+            }}
+          />
         </>
       )}
     </Stack.Navigator>

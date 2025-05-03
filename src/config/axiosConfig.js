@@ -1,7 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from './apiConfig';
 
-const API_URL = 'http://192.168.8.116:8000/api/token/refresh/';
+const API__URL = `${API_URL}/api-base/token/refresh/`;
 
 const logout = async () => {
   await AsyncStorage.removeItem('access');
@@ -26,7 +27,7 @@ const refreshAccessToken = async () => {
   }
 
   try {
-    const response = await axios.post(API_URL, {refresh});
+    const response = await axios.post(API__URL, {refresh});
 
     const {access} = response.data;
     await AsyncStorage.setItem('access', access);

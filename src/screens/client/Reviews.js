@@ -13,6 +13,7 @@ import axios from '../../config/axiosConfig';
 import {AirbnbRating} from 'react-native-ratings';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '../../config/apiConfig';
 
 // Исправленный компонент StarRating
 const StarRating = ({rating = 0}) => {
@@ -31,12 +32,9 @@ function Reviews({route}) {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(
-          'http://192.168.8.116:8000/api/reviews/',
-          {
-            params: {service_id: serviceId},
-          },
-        );
+        const response = await axios.get(`${API_URL}/api-base/reviews/`, {
+          params: {service_id: serviceId},
+        });
 
         setReviews(response.data);
       } catch (error) {
@@ -55,14 +53,11 @@ function Reviews({route}) {
 
   const handleAddReview = async () => {
     try {
-      const response = await axios.post(
-        'http://192.168.8.116:8000/api/reviews/',
-        {
-          rating: newReview.rating,
-          content: newReview.content,
-          service: serviceId,
-        },
-      );
+      const response = await axios.post(`${API_URL}/api-base/reviews/`, {
+        rating: newReview.rating,
+        content: newReview.content,
+        service: serviceId,
+      });
 
       setReviews(prevReviews => [response.data, ...prevReviews]);
       setNewReview({content: '', rating: 1});

@@ -1,57 +1,159 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, {useContext} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
+import {TouchableOpacity, Image, Alert} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Home from '../screens/client/home';
 import Car from '../screens/client/Car';
 import Services from '../screens/client/Services';
-import Dialogs from '../screens/client/Dialogs';
-import Profile from '../screens/client/Profile';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {AuthContext} from '../contexts/authContext';
+import Dialogs from '../screens/Dialogs';
+import Profile from '../screens/Profile';
+import HomeWorker from '../screens/worker/HomeWorker';
+import {GlobalContext} from '../contexts/globalContext';
+import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
 export const HomeTabs = () => {
-  const {role} = useContext(AuthContext);
+  const navigation = useNavigation();
+  const {user} = useContext(GlobalContext);
+  const role = user?.role || 'ROLE_CLIENT';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  console.log('role:', role);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem('access');
+        const isAuth = !!token;
+        setIsAuthenticated(isAuth);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, [user]);
+
+  const navigateToAddCar = () => {
+    if (isAuthenticated) {
+      navigation.navigate('AddCar');
+    } else {
+      Alert.alert('Авторизация', 'Вы не авторизованы!');
+    }
+  };
+
+  const commonOptions = {
+    headerStyle: {
+      backgroundColor: '#007bff',
+    },
+    headerTintColor: '#fff',
+    headerTitleStyle: {
+      fontWeight: '700',
+      fontSize: 20,
+    },
+  };
 
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
-        headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'black',
-
         tabBarIcon: ({focused, color, size}) => {
-          let iconName;
-          if (route.name === 'HomeTabs') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Car') {
-            iconName = focused ? 'car' : 'car-outline';
-          } else if (route.name === 'Services') {
-            iconName = focused ? 'construct' : 'construct-outline';
-          } else if (route.name === 'Dialogs') {
-            iconName = focused ? 'chatbubble' : 'chatbubble-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
+          const icons = {
+            Home: 'home',
+            Car: 'car',
+            Services: 'construct',
+            Dialogs: 'chatbubble',
+            Profile: 'person',
+            HomeWorker: 'home',
+          };
+          const iconName = icons[route.name] || 'apps';
           return (
-            <Icon name={iconName} size={focused ? 30 : size} color={color} />
+            <Icon
+              name={focused ? iconName : `${iconName}-outline`}
+              size={focused ? 30 : size}
+              color={color}
+            />
           );
         },
       })}>
-      {role === 'ROLE_CLIENT' ? (
+      {role === 'ROLE_WORKER' ? (
         <>
-          <Tab.Screen name="HomeTabs" component={Home} />
-          <Tab.Screen name="Car" component={Car} />
-          <Tab.Screen name="Services" component={Services} />
-          <Tab.Screen name="Dialogs" component={Dialogs} />
-          <Tab.Screen name="Profile" component={Profile} />
+          <Tab.Screen
+            name="HomeWorker"
+            component={HomeWorker}
+            options={{headerShown: false}}
+          />
+          <Tab.Screen
+            name="Dialogs"
+            component={Dialogs}
+            options={{
+              ...commonOptions,
+              headerTitle: 'ЧАТЫ',
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={Profile}
+            options={{
+              ...commonOptions,
+              headerTitle: 'ПРОФИЛЬ',
+            }}
+          />
         </>
       ) : (
         <>
-          <Tab.Screen name="Home" component={Home} />
+          <Tab.Screen
+            name="Home"
+            component={Home}
+            options={{headerShown: false}}
+          />
+          <Tab.Screen
+            name="Car"
+            component={Car}
+            options={({route}) => ({
+              ...commonOptions,
+              headerTitle: 'ВАШИ АВТОМОБИЛИ',
+              headerRight: () => (
+                <TouchableOpacity
+                  onPress={() => navigateToAddCar()}
+                  style={{marginRight: 15}}>
+                  <Image
+                    source={require('../assets/images/add.png')}
+                    style={{width: 30, height: 30, color: '#fff'}}
+                  />
+                </TouchableOpacity>
+              ),
+            })}
+          />
+          <Tab.Screen
+            name="Services"
+            component={Services}
+            options={{
+              ...commonOptions,
+              headerTitle: 'УСЛУГИ АВТОСЕРВИСА',
+            }}
+          />
+          <Tab.Screen
+            name="Dialogs"
+            component={Dialogs}
+            options={{
+              ...commonOptions,
+              headerTitle: 'ЧАТЫ',
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={Profile}
+            options={{
+              ...commonOptions,
+              headerTitle: 'ПРОФИЛЬ',
+            }}
+          />
         </>
       )}
     </Tab.Navigator>

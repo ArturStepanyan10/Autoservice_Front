@@ -11,6 +11,7 @@ import {
 import axios from '../../config/axiosConfig';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {API_URL} from '../../config/apiConfig';
 
 function EditCar() {
   const route = useRoute();
@@ -32,7 +33,7 @@ function EditCar() {
     const fetchCarData = async () => {
       try {
         const response = await axios.get(
-          `http://192.168.8.116:8000/api/carslist/${carId}/`,
+          `${API_URL}/api-base/carslist/${carId}/`,
         );
         const car = response.data;
 
@@ -44,7 +45,7 @@ function EditCar() {
         setLicensePlate(car.license_plate);
         setPhoto(car.photo);
       } catch (error) {
-        console.error('Ошибка при загрузке данных автомобиля:', error);
+        console.log('Ошибка при загрузке данных автомобиля:', error);
         Alert.alert('Ошибка', 'Не удалось загрузить данные автомобиля.');
       }
     };
@@ -97,7 +98,7 @@ function EditCar() {
       }
 
       const response = await axios.put(
-        `http://192.168.8.116:8000/api/carslist/${carId}/`,
+        `${API_URL}/api-base/carslist/${carId}/`,
         updatedCarData,
         {headers: {'Content-Type': 'multipart/form-data'}},
       );

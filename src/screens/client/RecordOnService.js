@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from '../../config/axiosConfig';
 import ModalSelector from 'react-native-modal-selector';
 import {useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../config/apiConfig';
 
 function RecordOnService() {
   const [date, setDate] = useState(new Date());
@@ -38,13 +39,11 @@ function RecordOnService() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const carResponse = await axios.get(
-          'http://192.168.8.116:8000/api/carslist/',
-        );
+        const carResponse = await axios.get(`${API_URL}/api-base/carslist/`);
         setCars(carResponse.data);
 
         const serviceResponse = await axios.get(
-          'http://192.168.8.116:8000/api/servicelist/',
+          `${API_URL}/api-base/servicelist/`,
         );
         setServices(serviceResponse.data);
 
@@ -87,7 +86,7 @@ function RecordOnService() {
     try {
       const formattedTime = `${selectedTime}:00`;
       const response = await axios.post(
-        'http://192.168.8.116:8000/api/appointmentlist/',
+        `${API_URL}/api-base/appointmentlist/`,
         {
           date: date.toISOString().split('T')[0],
           time: formattedTime,
@@ -124,12 +123,9 @@ function RecordOnService() {
 
       try {
         const formattedDate = date.toISOString().split('T')[0];
-        const response = await axios.get(
-          'http://192.168.8.116:8000/api/records/time/',
-          {
-            params: {date: formattedDate},
-          },
-        );
+        const response = await axios.get(`${API_URL}/api-base/records/time/`, {
+          params: {date: formattedDate},
+        });
 
         const times = response.data.map(record => record.time);
         setRecordsTime(times || []);

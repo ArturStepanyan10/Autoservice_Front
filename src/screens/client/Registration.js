@@ -11,6 +11,7 @@ import {Formik} from 'formik';
 import * as Yup from 'yup';
 import axios from '../../config/axiosConfig';
 import {useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../config/apiConfig';
 
 const validationSchema = Yup.object({
   email: Yup.string().email('Некорректный email').required('Email обязателен'),
@@ -37,7 +38,7 @@ function Registration() {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://192.168.8.116:8000/api/auth/user/register/',
+        `${API_URL}/api-base/auth/user/register/`,
         {
           email: values.email,
           password: values.password,

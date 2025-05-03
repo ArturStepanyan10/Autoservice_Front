@@ -11,6 +11,7 @@ import {
 import axios from '../../config/axiosConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../config/apiConfig';
 
 function Car() {
   const [cars, setCars] = useState([]);
@@ -27,9 +28,7 @@ function Car() {
         return;
       }
 
-      const response = await axios.get(
-        'http://192.168.8.116:8000/api/carslist/',
-      );
+      const response = await axios.get(`${API_URL}/api-base/carslist/`);
 
       setCars(response.data);
       setIsAuthenticated(true);
@@ -48,16 +47,16 @@ function Car() {
     }, []),
   );
 
-  const navigateToProfile = () => {
-    navigation.navigate('Profile');
-  };
-
   const navigateToAddCar = () => {
     if (isAuthenticated) {
       navigation.navigate('AddCar');
     } else {
       Alert.alert('Авторизация', 'Вы не авторизованы!');
     }
+  };
+
+  const navigateToProfile = () => {
+    navigation.navigate('Profile');
   };
 
   const navigateToEditCar = carId => {
@@ -72,7 +71,7 @@ function Car() {
         return;
       }
 
-      await axios.delete(`http://192.168.8.116:8000/api/carslist/${carId}/`, {
+      await axios.delete(`${API_URL}/api-base/carslist/${carId}/`, {
         headers: {
           Authorization: `JWT ${token}`,
         },
@@ -135,17 +134,6 @@ function Car() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>ВАШИ АВТОМОБИЛИ</Text>
-        <TouchableOpacity
-          onPress={navigateToAddCar}
-          style={styles.addCarContainer}>
-          <Image
-            source={require('../../assets/images/add.png')}
-            style={styles.addCar}
-          />
-        </TouchableOpacity>
-      </View>
       {isAuthenticated ? (
         cars.length > 0 ? (
           <FlatList
@@ -214,6 +202,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     position: 'relative',
+    borderWidth: 2,
+    borderColor: '#007bff',
   },
   edit: {
     width: 36,

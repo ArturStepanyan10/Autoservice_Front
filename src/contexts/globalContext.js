@@ -1,20 +1,14 @@
-import React, { useState, createContext} from 'react';
+import React, {useState, createContext} from 'react';
 
+export const GlobalContext = createContext();
 
-const Context = createContext()
+export const Provider = ({children}) => {
+  const [user, setUser] = useState(null);
+  console.log('Context: ', user);
 
-const Provider = ({ children }) => {
-
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-    const globalContext = {
-        isLoggedIn,
-        setIsLoggedIn,
-    }
-
-    return <Context.Provider value={globalContext}>
-        {children}
-    </Context.Provider>
+  return (
+    <GlobalContext.Provider value={{user, setUser}}>
+      {children}
+    </GlobalContext.Provider>
+  );
 };
-
-export {Context, Provider};

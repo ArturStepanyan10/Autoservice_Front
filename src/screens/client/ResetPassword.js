@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import axios from '../../config/axiosConfig.js';
 import {useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../config/apiConfig.js';
 
 function ResetPassword() {
   const [email, setEmail] = useState('');
@@ -22,10 +23,7 @@ function ResetPassword() {
     }
 
     try {
-      await axios.post(
-        'http://192.168.8.116:8000/api/password-reset-request/',
-        {email},
-      );
+      await axios.post(`${API_URL}/api-base/password-reset-request/`, {email});
       Alert.alert(
         'Успешно',
         'Инструкция по сбросу пароля отправлена на ваш email.',

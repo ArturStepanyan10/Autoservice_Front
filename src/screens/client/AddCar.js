@@ -13,6 +13,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import * as Yup from 'yup';
 import {Formik} from 'formik';
 import axios from '../../config/axiosConfig';
+import {API_URL} from '../../config/apiConfig';
 
 function AddCar() {
   const [photo, setPhoto] = useState(null);
@@ -73,7 +74,7 @@ function AddCar() {
 
     try {
       const response = await axios.post(
-        'http://192.168.8.116:8000/api/carslist/',
+        `${API_URL}/api-base/carslist/`,
         carData,
         {
           headers: {
