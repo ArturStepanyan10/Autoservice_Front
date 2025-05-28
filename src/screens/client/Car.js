@@ -142,23 +142,23 @@ function Car() {
             renderItem={renderCar}
           />
         ) : (
-          <>
+          <View style={styles.centerContainer}>
             <Text style={styles.noCars}>У вас пока нет автомобилей</Text>
             <TouchableOpacity onPress={navigateToAddCar}>
               <Text style={styles.buttonsCar}>Добавить автомобиль</Text>
             </TouchableOpacity>
-          </>
+          </View>
         )
       ) : (
-        <>
+        <View style={styles.centerContainer}>
           <Text style={styles.noCars}>
             Пока у вас нет добавленных автомобилей. Для этого нужно
             авторизоваться.
           </Text>
           <TouchableOpacity onPress={navigateToProfile}>
-            <Text style={styles.buttonsCar}>Авторизоваться</Text>
+            <Text style={styles.buttonAuthorization}>Авторизоваться</Text>
           </TouchableOpacity>
-        </>
+        </View>
       )}
     </View>
   );
@@ -169,6 +169,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f9f9f9',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -240,7 +246,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 8,
   },
-  buttonsCar: {
+  buttonAuthorization: {
     padding: 10,
     backgroundColor: '#007bff',
     borderRadius: 8,
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     color: '#fff',
     marginTop: 20,
-    fontSize: 20,
+    fontSize: 17,
   },
 });
 

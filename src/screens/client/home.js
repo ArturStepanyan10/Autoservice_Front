@@ -31,14 +31,7 @@ function Home() {
   );
 
   const navigateToRecordService = () => {
-    if (isAuthenticated) {
-      navigation.navigate('RecordOnService');
-    } else {
-      Alert.alert(
-        'Требуется авторизация',
-        'Пожалуйста, войдите в аккаунт, чтобы записаться на сервис.',
-      );
-    }
+    navigation.navigate('RecordOnService');
   };
 
   const navigateToAddCar = () => {
@@ -69,10 +62,7 @@ function Home() {
       </View>
 
       <TouchableOpacity onPress={navigateToRecordService}>
-        <Text
-          style={[styles.record, !isAuthenticated && styles.disabledRecord]}>
-          Записаться на сервис
-        </Text>
+        <Text style={styles.record}>Записаться на сервис</Text>
       </TouchableOpacity>
 
       <Text style={styles.recommendation}>Рекомендация</Text>

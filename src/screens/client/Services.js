@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
 import GetServices from '../../API/GET/GetServices';
 import {useNavigation} from '@react-navigation/native';
 
 function Services() {
   const navigation = useNavigation();
-  const [services, setServices] = React.useState([]);
+  const [services, setServices] = useState([]);
 
   const navigateToReviews = serviceId => {
     navigation.navigate('Reviews', {serviceId: serviceId});

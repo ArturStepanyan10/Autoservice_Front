@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import axios from '../../config/axiosConfig';
 import UserInfo from '../../API/GET/UserInfo';
@@ -39,65 +40,147 @@ function Appointments() {
   const getStatusColor = status => {
     switch (status) {
       case 'ПОДТВЕРЖДЕНА':
-        return {color: 'green'};
+        return {fontWeight: 'bold', color: 'green'};
       case 'В ПРОЦЕССЕ':
-        return {color: 'orange'};
+        return {fontWeight: 'bold', color: 'orange'};
       case 'ЗАВЕРШЕНА':
-        return {color: 'blue'};
+        return {fontWeight: 'bold', color: 'blue'};
       default:
-        return {color: 'gray'};
+        return {fontWeight: 'bold', color: 'gray'};
     }
   };
 
-  const getServiceNameById = serviceId => {
-    const service = services.find(service => service.id === serviceId);
-    return service ? service.title : 'Неизвестная услуга';
+  const isPastAppointment = (date, time) => {
+    try {
+      const appointmentDateTime = new Date(`${date}T${time}`);
+      const now = new Date();
+      return appointmentDateTime < now;
+    } catch (error) {
+      console.log('Ошибка при проверке времени:', error);
+      return false;
+    }
+  };
+
+  const createOrGetConversation = async workerId => {
+    try {
+      const response = await axios.post(`${API_URL}/api-chat/conversations/`, {
+        receiver: workerId[0],
+      });
+      const conversationId = response.data.conversation_id;
+      navigation.navigate('Chat', {conversationId});
+    } catch (error) {
+      console.log('Ошибка при создании или получении чата:', error);
+    }
+  };
+
+  const handleWorkerPress = workerId => {
+    if (workerId) {
+      createOrGetConversation(workerId);
+    }
+  };
+
+  const confirmCancel = (appointmentId, disabled) => {
+    if (disabled) return;
+
+    Alert.alert(
+      'Отмена записи',
+      'Вы уверены, что хотите отменить эту запись?',
+      [
+        {
+          text: 'Нет',
+          style: 'cancel',
+        },
+        {
+          text: 'Да',
+          onPress: () => cancelAppointment(appointmentId),
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
+  const cancelAppointment = async id => {
+    try {
+      await axios.delete(`${API_URL}/api-base/appointments/${id}/`);
+      console.log('Запись успешно отменена:', id);
+
+      setAppointment(prevAppointments =>
+        prevAppointments.filter(app => app.id !== id),
+      );
+    } catch (error) {
+      console.log('Ошибка при отмене записи:', error);
+      Alert.alert(
+        'Ошибка',
+        'Не удалось отменить запись. Пожалуйста, попробуйте позже.',
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image
-            source={require('../../assets/images/arrow_back.png')}
-            style={styles.arrow_back}
-          />
-        </TouchableOpacity>
-        <Text style={styles.header}>Записи на сервис</Text>
-      </View>
-
       <GetServices setServices={setServices} />
 
       {appointment.length > 0 ? (
         <FlatList
           data={appointment}
           keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <View style={styles.appointmentCard}>
-              <UserInfo setUser={setUser} />
-              {user ? (
-                <>
-                  <Text style={styles.title}>
-                    {getServiceNameById(item.service)}
-                  </Text>
-                  <Text>Дата: {item.date}</Text>
-                  <Text>Время: {item.time}</Text>
-                  <Text>
-                    Имя клиента: {user.first_name} {user.last_name}
-                  </Text>
-                  <Text>Телефон: {user.phone_number}</Text>
-                  <Text style={[styles.status, getStatusColor(item.status)]}>
-                    Статус: {item.status}
-                  </Text>
-                  <TouchableOpacity style={styles.cancelButton}>
-                    <Text style={styles.cancelText}>Отменить запись</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text>Загрузка данных пользователя...</Text>
-              )}
-            </View>
-          )}
+          renderItem={({item}) => {
+            const disabled = isPastAppointment(item.date, item.time);
+
+            return (
+              <View style={styles.appointmentCard}>
+                <UserInfo setUser={setUser} />
+                {user ? (
+                  <>
+                    <Text style={styles.title}>{item.service}</Text>
+                    <Text>Дата: {item.date}</Text>
+                    <Text>Время: {item.time}</Text>
+                    <Text>
+                      Имя клиента: {user.first_name} {user.last_name}
+                    </Text>
+                    <Text>Телефон: {item.phone_number}</Text>
+
+                    <View style={styles.workerContainer}>
+                      {item.worker ? (
+                        <TouchableOpacity
+                          onPress={() => handleWorkerPress(item.worker[0])}>
+                          <Text style={styles.workerLabel}>
+                            Мастер: {item.worker[1]} {item.worker[2]}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <Text style={styles.workerPending}>
+                          Мастер пока не назначен
+                        </Text>
+                      )}
+                    </View>
+
+                    <Text style={[styles.status, getStatusColor(item.status)]}>
+                      Статус: {item.status}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.cancelButton,
+                        disabled && {backgroundColor: '#ccc'},
+                      ]}
+                      onPress={() => confirmCancel(item.id, disabled)}
+                      disabled={disabled}>
+                      <Text
+                        style={[
+                          styles.cancelText,
+                          disabled && {color: '#666'},
+                        ]}>
+                        Отменить запись
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <Text>Загрузка данных пользователя...</Text>
+                )}
+              </View>
+            );
+          }}
         />
       ) : (
         <Text style={styles.noAppointments}>Записей пока нет</Text>
@@ -160,6 +243,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 15,
+  },
+  workerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  workerLabel: {
+    fontSize: 16,
+    textDecorationLine: 'underline',
+    color: '#1E90FF',
+  },
+  workerPending: {
+    fontSize: 16,
+    color: '#777',
+    fontStyle: 'italic',
+  },
+  status: {
+    marginTop: 5,
   },
 });
 

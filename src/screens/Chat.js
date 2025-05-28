@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+/* eslint-disable eqeqeq */
 import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
@@ -11,7 +13,8 @@ import {
 import {API_URL} from '../config/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../config/axiosConfig';
-import jwtDecode from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
+import {format, parseISO, isToday, isYesterday} from 'date-fns';
 
 const {width} = Dimensions.get('window');
 
@@ -19,71 +22,141 @@ const ChatScreen = ({route}) => {
   const {conversationId} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [myId, setMyId] = useState(null);
   const socketRef = useRef(null);
+  const [userId, setUserId] = useState(null);
 
-  // достаём свой user_id из токена
   useEffect(() => {
-    (async () => {
+    const getUserId = async () => {
       const token = await AsyncStorage.getItem('access');
       if (token) {
-        const {user_id} = jwtDecode(token);
-        setMyId(user_id);
+        const decoded = jwtDecode(token);
+        setUserId(decoded.user_id);
       }
-    })();
+    };
+    getUserId();
   }, []);
 
-  // WS
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      const token = await AsyncStorage.getItem('access');
-      if (!token) return;
-      const socket = new WebSocket(
-        `ws://${API_URL.replace(
-          'http://',
-          '',
-        )}/ws/conversations/${conversationId}/?token=${token}`,
-      );
-      socket.onmessage = e => {
-        const msg = JSON.parse(e.data);
-        if (isMounted) setMessages(prev => [...prev, msg]);
-      };
-      socketRef.current = socket;
-      return () => {
-        isMounted = false;
-        socket.close();
-      };
-    })();
+
+    const initWebSocket = async () => {
+      try {
+        const token = await AsyncStorage.getItem('access');
+        if (!token) {
+          console.warn('Токен не найден');
+          return;
+        }
+
+        const socket = new WebSocket(
+          `ws://${API_URL.replace(
+            'http://',
+            '',
+          )}/ws/conversations/${conversationId}/?token=${token}`,
+        );
+
+        socket.onopen = () => {
+          console.log('WebSocket подключён');
+        };
+
+        socket.onmessage = e => {
+          const message = JSON.parse(e.data);
+          if (isMounted) {
+            setMessages(prev => [...prev, message]);
+          }
+        };
+
+        socket.onerror = error => {
+          console.log('Ошибка WebSocket:', error.message);
+        };
+
+        socket.onclose = () => {
+          console.log('WebSocket отключён');
+        };
+
+        socketRef.current = socket;
+      } catch (error) {
+        console.error('Ошибка при инициализации WebSocket:', error);
+      }
+    };
+
+    initWebSocket();
+
+    return () => {
+      isMounted = false;
+      socketRef.current?.close();
+    };
   }, [conversationId]);
 
-  // REST-загрузка истории
   useEffect(() => {
-    (async () => {
-      const resp = await axios.get(
-        `${API_URL}/api-chat/messages/?conversation=${conversationId}`,
-      );
-      setMessages(resp.data);
-    })();
+    const fetchMessages = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api-chat/messages/?conversation=${conversationId}`,
+        );
+        setMessages(response.data);
+      } catch (error) {
+        console.error('Ошибка при загрузке сообщений:', error);
+      }
+    };
+
+    fetchMessages();
   }, [conversationId]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || socketRef.current.readyState !== WebSocket.OPEN)
-      return;
+    if (!newMessage.trim()) return;
     const token = await AsyncStorage.getItem('access');
+
     const {user_id: sender} = jwtDecode(token);
-    socketRef.current.send(
-      JSON.stringify({
-        action: 'send_message',
-        message: newMessage,
-        user_id: sender,
-      }),
-    );
-    setNewMessage('');
+
+    const payload = {
+      action: 'send_message',
+      message: newMessage,
+      user_id: sender,
+    };
+
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(payload));
+      setNewMessage('');
+    }
+  };
+
+  const groupMessagesByDate = messages => {
+    const result = [];
+    let lastDate = null;
+
+    messages.forEach(msg => {
+      if (!msg.created) return;
+      const msgDate = parseISO(msg.created);
+      const currentDateKey = format(msgDate, 'yyyy-MM-dd');
+
+      if (lastDate !== currentDateKey) {
+        let label = format(msgDate, 'd MMMM yyyy');
+
+        if (isToday(msgDate)) label = 'Сегодня';
+        else if (isYesterday(msgDate)) label = 'Вчера';
+
+        result.push({type: 'date', label});
+        lastDate = currentDateKey;
+      }
+
+      result.push({...msg, type: 'message'});
+    });
+
+    return result;
   };
 
   const renderItem = ({item}) => {
-    const isMine = item.user === myId;
+    if (item.type === 'date') {
+      return (
+        <View style={styles.dateSeparator}>
+          <Text style={styles.dateText}>{item.label}</Text>
+        </View>
+      );
+    }
+
+    const isMine = item.user[2] === userId;
+    const time = format(parseISO(item.created), 'HH:mm');
+
     return (
       <View
         style={[
@@ -92,8 +165,9 @@ const ChatScreen = ({route}) => {
           {alignSelf: isMine ? 'flex-end' : 'flex-start'},
         ]}>
         <Text style={isMine ? styles.myText : styles.theirText}>
-          {item.user} : {item.text}
+          {item.text}
         </Text>
+        <Text style={styles.timestamp}>{time}</Text>
       </View>
     );
   };
@@ -101,9 +175,11 @@ const ChatScreen = ({route}) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={messages}
+        data={groupMessagesByDate(messages)}
         renderItem={renderItem}
-        keyExtractor={(item, i) => i.toString()}
+        keyExtractor={(item, index) =>
+          item.type === 'date' ? `date-${index}` : `msg-${item.id || index}`
+        }
         contentContainerStyle={styles.chatContainer}
       />
       <View style={styles.inputRow}>
@@ -112,6 +188,7 @@ const ChatScreen = ({route}) => {
           value={newMessage}
           onChangeText={setNewMessage}
           placeholder="Напишите сообщение..."
+          placeholderTextColor="#ccc"
         />
         <Button title="➤" onPress={sendMessage} />
       </View>
@@ -159,6 +236,24 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f1f1f1',
     marginRight: 8,
+  },
+  dateSeparator: {
+    alignSelf: 'center',
+    backgroundColor: '#dcdcdc',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginVertical: 10,
+  },
+  dateText: {
+    fontSize: 13,
+    color: '#444',
+  },
+  timestamp: {
+    fontSize: 10,
+    color: '#ccc',
+    marginTop: 4,
+    alignSelf: 'flex-end',
   },
 });
 

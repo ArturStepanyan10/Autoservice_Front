@@ -18,9 +18,6 @@ const validationSchema = Yup.object({
   password: Yup.string()
     .required('Пароль обязателен')
     .min(6, 'Пароль должен содержать не менее 6 символов'),
-  phoneNumber: Yup.string()
-    .required('Телефон обязателен')
-    .matches(/^(\+7|8)\d{10}$/, 'Некорректный номер телефона'),
   firstName: Yup.string()
     .required('Имя обязательно')
     .min(2, 'Имя должно содержать не менее 2 символов'),
@@ -44,7 +41,6 @@ function Registration() {
           password: values.password,
           first_name: values.firstName,
           last_name: values.lastName,
-          phone_number: values.phoneNumber,
         },
       );
 
@@ -68,7 +64,6 @@ function Registration() {
         initialValues={{
           email: '',
           password: '',
-          phoneNumber: '',
           firstName: '',
           lastName: '',
         }}
@@ -115,14 +110,6 @@ function Registration() {
               <Text style={styles.errorText}>{errors.password}</Text>
             )}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Телефон"
-              value={values.phoneNumber}
-              onChangeText={handleChange('phoneNumber')}
-              onBlur={handleBlur('phoneNumber')}
-              placeholderTextColor="#ccc"
-            />
             {touched.phoneNumber && errors.phoneNumber && (
               <Text style={styles.errorText}>{errors.phoneNumber}</Text>
             )}

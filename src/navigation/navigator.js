@@ -18,13 +18,14 @@ import PasswordResetConfirm from '../screens/client/PasswordResetConfirm';
 import PastRecords from '../screens/worker/PastRecords';
 import FutureRecords from '../screens/worker/FutureRecords';
 import ChatScreen from '../screens/Chat';
+import ChatBot from '../screens/client/ChatBot';
+import LoyaltyProgram from '../screens/client/LoyaltyProgram';
 
 const Stack = createStackNavigator();
 
 function Navigator() {
   const {user} = useContext(GlobalContext);
   const role = user?.role;
-  console.log('Navigator', role);
 
   return (
     <Stack.Navigator>
@@ -62,7 +63,7 @@ function Navigator() {
               headerStyle: {backgroundColor: '#007bff'},
               headerTintColor: '#fff',
               headerTitleStyle: {fontSize: 20},
-              title: 'Будущие записи',
+              title: 'Диалог',
             }}
           />
         </>
@@ -96,7 +97,12 @@ function Navigator() {
           <Stack.Screen
             name="Appointments"
             component={Appointments}
-            options={{headerShown: false}}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Записи на сервис',
+            }}
           />
           <Stack.Screen
             name="AddCar"
@@ -136,6 +142,26 @@ function Navigator() {
               headerTintColor: '#fff',
               headerTitleStyle: {fontSize: 20},
               title: 'Диалог',
+            }}
+          />
+          <Stack.Screen
+            name="ChatBot"
+            component={ChatBot}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'ЧАТ-БОТ',
+            }}
+          />
+          <Stack.Screen
+            name="LoyaltyProgram"
+            component={LoyaltyProgram}
+            options={{
+              headerStyle: {backgroundColor: '#007bff'},
+              headerTintColor: '#fff',
+              headerTitleStyle: {fontSize: 20},
+              title: 'Программа лояльности',
             }}
           />
         </>

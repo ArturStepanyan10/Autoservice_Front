@@ -48,6 +48,9 @@ function Profile() {
   };
 
   const navigateAppointments = () => navigation.navigate('Appointments');
+  const navigateChatBot = () => navigation.navigate('ChatBot');
+  const navigateLoyaltyProgram = () => navigation.navigate('LoyaltyProgram');
+
   const navigateInfoUser = () =>
     user && navigation.navigate('InfoUser', {userData: user});
   const openMarkdownInstructions = () => {
@@ -90,11 +93,21 @@ function Profile() {
           )}
 
           {user && user.role === 'ROLE_CLIENT' && (
-            <TouchableOpacity onPress={navigateAppointments}>
-              <Text style={styles.blockAppointment}>
-                История записей на сервис
-              </Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={navigateAppointments}>
+                <Text style={styles.blockAppointment}>
+                  История записей на сервис
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={navigateLoyaltyProgram}>
+                <Text style={styles.blockAppointment}>
+                  Программа лояльности
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={navigateChatBot}>
+                <Text style={styles.blockAppointment}>ЧАТ-БОТ</Text>
+              </TouchableOpacity>
+            </>
           )}
 
           <TouchableOpacity
@@ -173,8 +186,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#007bff',
     borderRadius: 8,
     padding: 10,
-    marginTop: 20,
+    marginTop: 15,
     color: '#fff',
+    fontWeight: 'bold',
   },
   aboutAppBlock: {
     backgroundColor: '#007bff',

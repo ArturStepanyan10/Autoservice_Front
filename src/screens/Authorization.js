@@ -73,7 +73,7 @@ const Authorization = ({setAuthenticated}) => {
         if (role === 'ROLE_WORKER') {
           navigation.navigate('HomeWorker');
         } else {
-          navigation.navigate('Home'); // даже если роль неизвестна — ведем в клиентский интерфейс
+          navigation.navigate('Home');
         }
       }
     } catch (error) {

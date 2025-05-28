@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, {useContext, useState, useEffect} from 'react';
+import {AppState} from 'react-native';
 import {TouchableOpacity, Image, Alert} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -20,22 +21,36 @@ export const HomeTabs = () => {
   const {user} = useContext(GlobalContext);
   const role = user?.role || 'ROLE_CLIENT';
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  console.log('role:', role);
+  console.log(isAuthenticated);
+
+  const checkAuth = async () => {
+    try {
+      const token = await AsyncStorage.getItem('access');
+      setIsAuthenticated(!!token);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setIsAuthenticated(false);
+    }
+  };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await AsyncStorage.getItem('access');
-        const isAuth = !!token;
-        setIsAuthenticated(isAuth);
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setIsAuthenticated(false);
-      }
-    };
+    checkAuth(); // начальная проверка
 
-    checkAuth();
-  }, [user]);
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      checkAuth(); // при фокусе любого Tab
+    });
+
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        checkAuth(); // при возврате в приложение
+      }
+    });
+
+    return () => {
+      unsubscribeFocus();
+      subscription.remove();
+    };
+  }, [user, navigation]);
 
   const navigateToAddCar = () => {
     if (isAuthenticated) {
@@ -46,14 +61,9 @@ export const HomeTabs = () => {
   };
 
   const commonOptions = {
-    headerStyle: {
-      backgroundColor: '#007bff',
-    },
+    headerStyle: {backgroundColor: '#007bff'},
     headerTintColor: '#fff',
-    headerTitleStyle: {
-      fontWeight: '700',
-      fontSize: 20,
-    },
+    headerTitleStyle: {fontWeight: '700', fontSize: 20},
   };
 
   return (
@@ -91,18 +101,12 @@ export const HomeTabs = () => {
           <Tab.Screen
             name="Dialogs"
             component={Dialogs}
-            options={{
-              ...commonOptions,
-              headerTitle: 'ЧАТЫ',
-            }}
+            options={{...commonOptions, headerTitle: 'ЧАТЫ'}}
           />
           <Tab.Screen
             name="Profile"
             component={Profile}
-            options={{
-              ...commonOptions,
-              headerTitle: 'ПРОФИЛЬ',
-            }}
+            options={{...commonOptions, headerTitle: 'ПРОФИЛЬ'}}
           />
         </>
       ) : (
@@ -115,20 +119,21 @@ export const HomeTabs = () => {
           <Tab.Screen
             name="Car"
             component={Car}
-            options={({route}) => ({
+            options={{
               ...commonOptions,
-              headerTitle: 'ВАШИ АВТОМОБИЛИ',
-              headerRight: () => (
-                <TouchableOpacity
-                  onPress={() => navigateToAddCar()}
-                  style={{marginRight: 15}}>
-                  <Image
-                    source={require('../assets/images/add.png')}
-                    style={{width: 30, height: 30, color: '#fff'}}
-                  />
-                </TouchableOpacity>
-              ),
-            })}
+              headerTitle: 'МОИ АВТОМОБИЛИ',
+              headerRight: () =>
+                isAuthenticated ? (
+                  <TouchableOpacity
+                    onPress={navigateToAddCar}
+                    style={{marginRight: 15}}>
+                    <Image
+                      source={require('../assets/images/add.png')}
+                      style={{width: 30, height: 30}}
+                    />
+                  </TouchableOpacity>
+                ) : null,
+            }}
           />
           <Tab.Screen
             name="Services"
@@ -141,10 +146,7 @@ export const HomeTabs = () => {
           <Tab.Screen
             name="Dialogs"
             component={Dialogs}
-            options={{
-              ...commonOptions,
-              headerTitle: 'ЧАТЫ',
-            }}
+            options={{...commonOptions, headerTitle: 'ЧАТЫ'}}
           />
           <Tab.Screen
             name="Profile"
@@ -152,6 +154,19 @@ export const HomeTabs = () => {
             options={{
               ...commonOptions,
               headerTitle: 'ПРОФИЛЬ',
+              headerRight: () =>
+                isAuthenticated ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate('Notifications');
+                    }}
+                    style={{marginRight: 15}}>
+                    <Image
+                      source={require('../assets/images/notifications.png')}
+                      style={{width: 26, height: 26}}
+                    />
+                  </TouchableOpacity>
+                ) : null,
             }}
           />
         </>

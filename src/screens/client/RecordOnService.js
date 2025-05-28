@@ -1,162 +1,150 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from '../../config/axiosConfig';
 import ModalSelector from 'react-native-modal-selector';
 import {useNavigation} from '@react-navigation/native';
 import {API_URL} from '../../config/apiConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function RecordOnService() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [cars, setCars] = useState([]);
   const [services, setServices] = useState([]);
-  const [selectedCar, setSelectedCar] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-  const navigation = useNavigation();
   const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedTime, setSelectedTime] = useState(null);
   const [recordsTime, setRecordsTime] = useState([]);
 
-  const generateTimeSlots = (startTime, endTime, intervalMinutes) => {
-    const slots = [];
-    let currentTime = startTime;
-    while (currentTime < endTime) {
-      const hours = Math.floor(currentTime / 60);
-      const minutes = currentTime % 60;
-      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes
-        .toString()
-        .padStart(2, '0')}`;
-      slots.push(formattedTime);
-      currentTime += intervalMinutes;
-    }
-    return slots;
-  };
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
 
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 14);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [description, setDescription] = useState('');
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('access');
+      setIsAuthenticated(!!token);
+    };
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const carResponse = await axios.get(`${API_URL}/api-base/carslist/`);
-        setCars(carResponse.data);
-
+        if (isAuthenticated) {
+          const carResponse = await axios.get(`${API_URL}/api-base/carslist/`);
+          setCars(carResponse.data);
+        }
         const serviceResponse = await axios.get(
           `${API_URL}/api-base/servicelist/`,
         );
         setServices(serviceResponse.data);
 
-        const times = generateTimeSlots(9 * 60, 19 * 60, 40);
-        setAvailableTimes(times);
+        const slots = [];
+        for (let t = 9 * 60; t < 19 * 60; t += 60) {
+          const h = Math.floor(t / 60);
+          const m = t % 60;
+          slots.push(
+            `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`,
+          );
+        }
+        setAvailableTimes(slots);
       } catch (error) {
-        console.error('Ошибка загрузки данных:', error.message);
-        Alert.alert('Ошибка', 'Убедитесь в правильности данных!');
+        console.log('Ошибка загрузки данных:', error.message);
+        Alert.alert('Ошибка', 'Не удалось загрузить данные!');
       }
     };
-
     fetchData();
-  }, []);
-
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!date || !selectedTime || !selectedService) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните все обязательные поля.');
-      return;
-    }
-
-    const [selectedHours, selectedMinutes] = selectedTime
-      .split(':')
-      .map(Number);
-    if (
-      selectedHours < 9 ||
-      (selectedHours === 19 && selectedMinutes > 0) ||
-      selectedHours > 19
-    ) {
-      Alert.alert('Ошибка', 'Автосервис работает с 9:00 до 19:00.');
-      return;
-    }
-
-    try {
-      const formattedTime = `${selectedTime}:00`;
-      const response = await axios.post(
-        `${API_URL}/api-base/appointmentlist/`,
-        {
-          date: date.toISOString().split('T')[0],
-          time: formattedTime,
-          car: selectedCar,
-          service: selectedService,
-        },
-      );
-
-      if (response.status === 201) {
-        Alert.alert('Успех', 'Запись успешно добавлена!');
-        navigation.popToTop();
-      }
-
-      setDate(new Date());
-      setSelectedTime(null);
-      setSelectedCar(null);
-      setSelectedService(null);
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.time?.[0] ||
-        error.response?.data?.detail ||
-        'Не удалось добавить запись. Пожалуйста, попробуйте снова.';
-      Alert.alert('Ошибка', errorMessage);
-      console.error(
-        'Ошибка добавления записи:',
-        error.response?.data || error.message,
-      );
-    }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const fetchTimes = async () => {
       if (!date) return;
-
       try {
         const formattedDate = date.toISOString().split('T')[0];
         const response = await axios.get(`${API_URL}/api-base/records/time/`, {
           params: {date: formattedDate},
         });
-
-        const times = response.data.map(record => record.time);
-        setRecordsTime(times || []);
+        const times = response.data.map(r =>
+          r.time.split(':').slice(0, 2).join(':'),
+        );
+        setRecordsTime(times);
       } catch (error) {
         console.log('Ошибка при загрузке занятых временных интервалов:', error);
       }
     };
-
     fetchTimes();
   }, [date]);
 
-  const formattedAvailableTimes = availableTimes.map(time => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}`;
-  });
+  const handleDateChange = (event, d) => {
+    setShowDatePicker(false);
+    if (d) setDate(d);
+  };
 
-  const formattedRecordsTime = recordsTime.map(time => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}`;
-  });
+  const handleSubmit = async () => {
+    if (
+      (!isAuthenticated && (!firstName || !lastName || !email)) ||
+      !selectedService ||
+      !selectedTime
+    ) {
+      Alert.alert('Ошибка', 'Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
 
-  const filteredTimes = formattedAvailableTimes.filter(
-    time => !formattedRecordsTime.includes(time),
-  );
+    const payload = {
+      date: date.toISOString().split('T')[0],
+      time: `${selectedTime}:00`,
+      service: [selectedService],
+      phone_number: phone,
+      description,
+    };
+    if (isAuthenticated) {
+      payload.car = selectedCar;
+    } else {
+      payload.first_name = firstName;
+      payload.last_name = lastName;
+      payload.email = email;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api-base/appointmentlist/`,
+        payload,
+      );
+      if (response.status === 201) {
+        Alert.alert('Успех', 'Запись успешно добавлена!');
+        navigation.popToTop();
+      }
+    } catch (error) {
+      console.log(
+        'Ошибка добавления записи:',
+        error.response?.data || error.message,
+      );
+      const msg = error.response?.data?.detail || 'Не удалось добавить запись.';
+      Alert.alert('Ошибка', msg);
+    }
+  };
+
+  const times = availableTimes.filter(t => !recordsTime.includes(t));
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Записаться на услугу</Text>
       <TouchableOpacity
         style={styles.input}
@@ -169,79 +157,110 @@ function RecordOnService() {
           mode="date"
           display="default"
           minimumDate={new Date()}
-          maximumDate={maxDate}
+          maximumDate={new Date(new Date().setDate(new Date().getDate() + 14))}
           onChange={handleDateChange}
         />
       )}
 
       <ModalSelector
-        data={filteredTimes.map((time, index) => ({
-          key: index,
-          label: time,
-          disabled: recordsTime.includes(time),
-        }))}
+        data={times.map((time, i) => ({key: i, label: time}))}
         initValue={selectedTime || 'Выберите время'}
-        onChange={option => setSelectedTime(option.label)}
+        onChange={opt => setSelectedTime(opt.label)}
         style={styles.input}>
         <Text style={styles.inputText}>{selectedTime || 'Выберите время'}</Text>
       </ModalSelector>
 
-      <ModalSelector
-        data={cars.map(car => ({
-          key: car.id,
-          label: `${car.brand} ${car.model} (${car.license_plate})`,
-        }))}
-        initValue={
-          selectedCar
-            ? `${cars.find(car => car.id === selectedCar).brand} ${
-                cars.find(car => car.id === selectedCar).model
-              } (${cars.find(car => car.id === selectedCar).license_plate})`
-            : 'Выберите автомобиль (не обязательно)'
-        }
-        onChange={option => setSelectedCar(option.key)}
-        style={styles.input}>
-        <Text style={styles.inputText}>
-          {selectedCar
-            ? `${cars.find(car => car.id === selectedCar).brand} ${
-                cars.find(car => car.id === selectedCar).model
-              } (${cars.find(car => car.id === selectedCar).license_plate})`
-            : 'Выберите автомобиль (не обязательно)'}
-        </Text>
-      </ModalSelector>
+      {isAuthenticated ? (
+        <ModalSelector
+          data={cars.map(c => ({key: c.id, label: `${c.brand} ${c.model}`}))}
+          initValue={
+            selectedCar
+              ? cars.find(c => c.id === selectedCar).brand +
+                ' ' +
+                cars.find(c => c.id === selectedCar).model
+              : 'Выберите автомобиль'
+          }
+          onChange={opt => setSelectedCar(opt.key)}
+          style={styles.input}>
+          <Text style={styles.inputText}>
+            {selectedCar
+              ? cars.find(c => c.id === selectedCar).brand +
+                ' ' +
+                cars.find(c => c.id === selectedCar).model
+              : 'Выберите автомобиль'}
+          </Text>
+        </ModalSelector>
+      ) : (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Имя"
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholderTextColor="#ccc"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Фамилия"
+            value={lastName}
+            onChangeText={setLastName}
+            placeholderTextColor="#ccc"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            placeholderTextColor="#ccc"
+          />
+        </>
+      )}
+
+      <TextInput
+        style={styles.input}
+        placeholder="Телефон"
+        keyboardType="phone-pad"
+        value={phone}
+        onChangeText={setPhone}
+        placeholderTextColor="#ccc"
+      />
 
       <ModalSelector
-        data={services.map(service => ({
-          key: service.id,
-          label: service.title,
-        }))}
+        data={services.map(s => ({key: s.id, label: s.title}))}
         initValue={
           selectedService
-            ? services.find(service => service.id === selectedService)?.title
+            ? services.find(s => s.id === selectedService).title
             : 'Выберите услугу'
         }
-        onChange={option => setSelectedService(option.key)}
+        onChange={opt => setSelectedService(opt.key)}
         style={styles.input}>
         <Text style={styles.inputText}>
           {selectedService
-            ? services.find(service => service.id === selectedService)?.title
+            ? services.find(s => s.id === selectedService).title
             : 'Выберите услугу'}
         </Text>
       </ModalSelector>
+      <TextInput
+        style={styles.input}
+        placeholder="Описание проблемы"
+        value={description}
+        onChangeText={setDescription}
+        placeholderTextColor="#ccc"
+      />
 
       <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-        <Text style={styles.submitButtonText}>Записаться на сервис</Text>
+        <Text style={styles.submitButtonText}>Записаться</Text>
       </TouchableOpacity>
-
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Text style={styles.back}>Назад</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: '#f9f9f9',
   },
@@ -266,9 +285,10 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#007bff',
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   submitButtonText: {
     color: '#fff',
@@ -277,10 +297,10 @@ const styles = StyleSheet.create({
   },
   back: {
     color: '#007bff',
-    fontSize: 17,
-    textDecorationLine: 'underline',
+    fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 15,
+    textDecorationLine: 'underline',
   },
 });
 
